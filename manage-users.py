@@ -19,11 +19,16 @@ columns = {
 }
 
 for k, df in user_df.items():
+    if st.session_state['mentor_view'] and df[df['USER_MENTOR'] == st.session_state['mentor_view']].count()['USER_MENTOR'] == 0:
+        continue
+    
     st.write(f'## {k}')
 
     with st.container(horizontal=True, key=f'user-{k}'):
         for i, idx in enumerate(df.index):
             name, mentor = df.loc[idx, ['USER_FULLNAME', 'USER_MENTOR']]
+            if st.session_state['mentor_view'] and mentor != st.session_state['mentor_view']:
+                continue
             
             if mentor == mentor: # not nan
                 mentor = f' `{mentor}`'
@@ -40,6 +45,9 @@ for k, df in user_df.items():
                 type_ = {'Researcher': 'researcher', 'PhD': 'researcher', 'Student': 'student', 'LKM': 'student_LKM'}[k]
                 name = email[:email.index('@')]
                 df.loc[email, ['USER_FULLNAME', 'USER_TYPE', 'USER_EMAIL']] = [name, type_, email]
+                
+                if st.session_state['mentor_view']:
+                    df.loc[email, 'USER_MENTOR'] = st.session_state['mentor_view']
                 
                 add_container_with_defaults(container_df[k], f'{name}-workspace', email)
 
