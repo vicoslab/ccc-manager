@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import itertools
 import container
+from confirmation import confirmation
 
 container_df = st.session_state['container_df']
 
@@ -85,16 +86,7 @@ for k,v in inputs.items():
     else:
         raise ValueError(f'Unexpected type for key \'{k}\'', v)
 
-@st.dialog('Confirm container deletion')
-def confirm_delete(name, complete):
-    st.write(f'Are you sure you want to delete container \'{name}\'?')
-    
-    _, left, right = st.columns([0.7, 0.15, 0.15])
-    if left.button('No'):
-        st.rerun()
-    if right.button('Yes', type='primary'):
-        complete()
-        st.rerun()
+confirm_delete = confirmation('Confirm container deletion')
 
 # Containers
 for container_group, df in container_df.items():
@@ -113,7 +105,9 @@ for container_group, df in container_df.items():
                 # this is a bit of a hack to make sure the callback references
                 # the correct values instead of the last ones
                 get_callback = lambda df, id: lambda: df.drop(id, inplace=True)
-                confirm_delete(c["STACK_NAME"], get_callback(df, id))
+                confirm_delete(
+                    f'Are you sure you want to delete container \'{c["STACK_NAME"]}\'?',
+                    get_callback(df, id))
 
 if st.button('', icon=':material/add:'):
     container.add_container_with_defaults(container_df[group], 'unnamed-container', person['USER_EMAIL'])

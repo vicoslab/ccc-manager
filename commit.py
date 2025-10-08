@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-from yamlhandler import save_users, save_containers
+from yamlhandler import save_users, save_containers, load_users, load_containers
 import subprocess
 import tempfile
 from ansi2html import Ansi2HTMLConverter
+from confirmation import confirmation
 
 _user_yaml = '../inventory/group_vars/ccc-cluster/user-list.yml'
 _container_yaml = '../inventory/group_vars/ccc-cluster/user-containers.yml'
@@ -50,9 +51,22 @@ with tempfile.NamedTemporaryFile('w') as f:
     else:
         st.write('No changes')
 
-if st.button("Save"):
-    with open(_user_yaml, 'w') as f:
-        save_users(st.session_state, f)
-        
-    with open(_container_yaml, 'w') as f:
-        save_containers(st.session_state, f)
+
+confirm_discard = confirmation('Confirm discard')
+def discard():
+    with open(_user_yaml) as f:
+        load_users(st.session_state, f)
+
+    with open(_container_yaml) as f:
+        load_containers(st.session_state, f)
+
+with st.container(horizontal=True):
+    if st.button("Save"):
+        with open(_user_yaml, 'w') as f:
+            save_users(st.session_state, f)
+            
+        with open(_container_yaml, 'w') as f:
+            save_containers(st.session_state, f)
+
+    if st.button('Discard changes', type='primary'):
+        confirm_discard('Are you sure you want to discard changes?', discard)
