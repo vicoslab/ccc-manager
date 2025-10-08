@@ -27,9 +27,19 @@ def checknan(x, default):
     return default
 
 
-def show_ui(id, key=None):
-    container_df = st.session_state['container_df']
-    user_df = st.session_state['user_df']
+def add_container_with_defaults(df, name, email):
+    # all base images with cuda (they already come sorted descending by version)
+    images = [x for x in get_available_images() if ':base-' in x and 'cuda' in x]
+    df.loc[len(df), ['STACK_NAME', 'USER_EMAIL', 'CONTAINER_IMAGE', 'FRP_PORTS']] = [
+        name,
+        email,
+        images[0],
+        { 'TCP': [22] },
+    ]
+
+def show_ui(user_group, container_group, id, key=None):
+    container_df = st.session_state['container_df'][container_group]
+    user_df = st.session_state['user_df'][user_group]
     container = container_df.loc[id]
 
     if 'available_images' not in st.session_state:

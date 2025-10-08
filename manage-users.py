@@ -1,5 +1,7 @@
 import streamlit as st
+from container import add_container_with_defaults
 
+container_df = st.session_state['container_df']
 user_df = st.session_state['user_df']
 
 columns = {
@@ -16,15 +18,30 @@ columns = {
     'PURGE_USER_DATA': 'Purge data',
 }
 
-selection = st.dataframe(user_df[['USER_FULLNAME','USER_EMAIL','USER_MENTOR','USER_TYPE']],
-    column_config=columns,
-    selection_mode = 'single-row',
-    on_select = 'rerun',
-    hide_index = True,
-    key = 'users',
-    #num_rows = 'dynamic',
-)
+for k, df in user_df.items():
+    st.write(f'## {k}')
 
-if selection['selection']['rows']:
-    st.session_state['selected_user'] = selection['selection']['rows'][0]
-    st.switch_page('edit-user.py')
+    with st.container(horizontal=True, key=f'user-{k}'):
+        for i, idx in enumerate(df.index):
+            name, mentor = df.loc[idx, ['USER_FULLNAME', 'USER_MENTOR']]
+            
+            if mentor == mentor: # not nan
+                mentor = f' `{mentor}`'
+            else:
+                mentor = ''
+
+            if st.button(name + mentor, key=f'{k}-{i}'):
+                st.session_state['selected_user'] = k, i
+                st.switch_page('edit-user.py')
+
+        with st.popover('', icon=':material/add:'):
+            email = st.text_input('Email', key=f'user-{k}-add')
+            if email:
+                type_ = {'Researcher': 'researcher', 'PhD': 'researcher', 'Student': 'student', 'LKM': 'student_LKM'}[k]
+                name = email[:email.index('@')]
+                df.loc[email, ['USER_FULLNAME', 'USER_TYPE', 'USER_EMAIL']] = [name, type_, email]
+                
+                add_container_with_defaults(container_df[k], f'{name}-workspace', email)
+
+                st.session_state['selected_user'] = k, len(df) - 1
+                st.switch_page('edit-user.py')
