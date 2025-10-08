@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import itertools
 import math
+import random
+import config
 from image_info import get_available_images
 
 df_columns = {
@@ -30,12 +32,17 @@ def checknan(x, default):
 def add_container_with_defaults(df, name, email):
     # all base images with cuda (they already come sorted descending by version)
     images = [x for x in get_available_images() if ':base-' in x and 'cuda' in x]
-    df.loc[len(df), ['STACK_NAME', 'USER_EMAIL', 'CONTAINER_IMAGE', 'FRP_PORTS']] = [
-        name,
+    pass_ = config.PASSWORD_FORMAT.format(user=name[0], rand=f'{random.getrandbits(20):05x}')
+    i = len(df)
+    df.loc[i, ['STACK_NAME', 'USER_EMAIL', 'CONTAINER_IMAGE', 'SHM_SIZE', 'FRP_PORTS', 'EXTRA_ENVS']] = [
+        f'{"".join(name)}-workspace',
         email,
         images[0],
-        { 'TCP': [22] },
+        '2GB',
+        { 'TCP': [22], 'HTTP': [{'port': 6006, 'subdomain': ''.join(name), 'pass': pass_}] },
+        { 'CONDA_PLUGINS_AUTO_ACCEPT_TOS': 'yes' },
     ]
+    df.at[i, 'INSTALL_PACKAGES'] = 'zip unzip rar unrar tmux htop screen'.split(' ')
 
 def show_ui(user_group, container_group, id, key=None):
     container_df = st.session_state['container_df'][container_group]
