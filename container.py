@@ -64,7 +64,7 @@ def show_ui(user_group, container_group, id, key=None):
     if st.session_state.advanced_mode:
         inputs['INSTALL_PACKAGES'] = st.multiselect(
             'Additional packages to install',
-            set(itertools.chain(*container_df['INSTALL_PACKAGES'].dropna().values)),
+            st.session_state['packages'],
             default = container['INSTALL_PACKAGES'] or None,
             accept_new_options=True,
             key=f'c{key}-pkgs')
@@ -148,13 +148,13 @@ def show_ui(user_group, container_group, id, key=None):
         cols = st.columns(2)
         inputs['ALLOWED_NODES'] = cols[0].multiselect(
             'Allowed nodes',
-            set(itertools.chain(*container_df['ALLOWED_NODES'].dropna().values)),
+            st.session_state['nodes'],
             default = checknan(container['ALLOWED_NODES'], None),
             accept_new_options=True,
             key=f'c{key}-nallow')
         inputs['DEPLOYMENT_NODES'] = cols[1].multiselect(
             'Deployment nodes',
-            set(itertools.chain(*container_df['DEPLOYMENT_NODES'].dropna().values)),
+            st.session_state['nodes'],
             default = checknan(container['DEPLOYMENT_NODES'], None),
             accept_new_options=True,
             key=f'c{key}-ndeploy')

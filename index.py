@@ -1,8 +1,9 @@
 import streamlit as st
-from yamlhandler import load_users, load_containers
+from yamlhandler import load_users, load_containers, load_nodes
 
 #st.login()
 
+_nodes_yaml = '../inventory/vicos.yml'
 _user_yaml = '../inventory/group_vars/ccc-cluster/user-list.yml'
 _container_yaml = '../inventory/group_vars/ccc-cluster/user-containers.yml'
 
@@ -36,6 +37,10 @@ if not hasattr(st.session_state, 'delete_confirmation'):
     st.session_state['delete_confirmation'] = 0
 if not hasattr(st.session_state, 'mentor_view'):
     st.session_state['mentor_view'] = None
+    
+if not hasattr(st.session_state, 'nodes'):
+    with open(_nodes_yaml) as f:
+        load_nodes(st.session_state, f)
     
 if not hasattr(st.session_state, 'user_df'):
     with open(_user_yaml) as f:

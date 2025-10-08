@@ -166,6 +166,7 @@ def load_containers(state, fd):
 
     state['container_df'] = {}
     images = container.get_available_images()
+    packages = []
     order = ['STACK_NAME','STORAGE_NAME','USER_EMAIL','CONTAINER_IMAGE','DEPLOYMENT_NODES','ALLOWED_NODES','INSTALL_PACKAGES', 'RUN_PRIVILEGED','ENABLE_DOCKER_ACCESS','SHM_SIZE', 'DISABLED','FRP_PORTS','EXTRA_ENVS']
     for group, v in state['_container_data_raw'].items():
         
@@ -181,9 +182,13 @@ def load_containers(state, fd):
                 df[k] = None
 
         df = df[order]
+
         df['CONTAINER_IMAGE'] = df['CONTAINER_IMAGE'].astype('category')
         images += [x for x in df['CONTAINER_IMAGE'].cat.categories if x not in images]
+
         df['INSTALL_PACKAGES'] = df['INSTALL_PACKAGES'].apply(lambda x: x.split(' '))
+        df['INSTALL_PACKAGES'].transform(packages.extend)
+
         df['STORAGE_NAME'] = df['STORAGE_NAME'].apply(lambda x: x if x == x else None)
         #df['FRP_PORTS'] = df['FRP_PORTS'].apply(lambda x: yaml.dump_to_string(clear_comments(x)) if x == x else '').astype(str)
         #df['EXTRA_ENVS'] = df['EXTRA_ENVS'].apply(lambda x: yaml.dump_to_string(clear_comments(x)) if x == x else '').astype(str)
@@ -191,6 +196,7 @@ def load_containers(state, fd):
 
         state['container_df'][group] = df
     
+    state['packages'] = sorted(set(packages))
     for df in state['container_df'].values():
         df['CONTAINER_IMAGE'] = df['CONTAINER_IMAGE'].cat.set_categories(images)
 
@@ -277,3 +283,8 @@ def save_containers(state, fd):
         lkm_header,
         segments['LKM']
     ]))
+
+def load_nodes(state, fd):
+
+    data = yaml.load(fd.read())
+    state['nodes'] = [*data['all']['children']['ccc-cluster']['hosts'].keys()]
