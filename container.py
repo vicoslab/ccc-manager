@@ -192,7 +192,7 @@ def show_ui(user_group, container_group, id, key=None):
 
         if container['EXTRA_ENVS']:
             for k in container['EXTRA_ENVS']:
-                if flex.button(k):
+                if flex.button(k, key=f'{key}-env-{k}'):
                     edit_env(k)
             
         if flex.button('', icon=':material/add:', key=f'c{key}-newenv'):

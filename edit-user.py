@@ -11,6 +11,9 @@ def checknan(x, default):
         return x
     return default
 
+if 'selected_user' not in st.session_state:
+    st.switch_page('manage-users.py')
+
 group, id = st.session_state['selected_user']
 user_df = st.session_state['user_df'][group]
 person = user_df.iloc[id]
@@ -98,10 +101,10 @@ for container_group, df in container_df.items():
         c = shown_containers.iloc[i]
 
         with st.expander(f'Container: {c["STACK_NAME"]}'):
-            container.show_ui(group, container_group, shown_index[i], key=i)
+            container.show_ui(group, container_group, shown_index[i], key=f'{container_group}-{i}')
 
             id = shown_index[i]
-            if st.button('Delete', key=f'c{i}-del', type='primary'):
+            if st.button('Delete', key=f'c{container_group}-{i}-del', type='primary'):
                 # this is a bit of a hack to make sure the callback references
                 # the correct values instead of the last ones
                 get_callback = lambda df, id: lambda: df.drop(id, inplace=True)
