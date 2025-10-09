@@ -6,7 +6,7 @@ from yamlhandler import load_users, load_containers, load_nodes
 
 nav_pages = [
     st.Page('manage-users.py', icon=":material/person:", title="Manage users"),
-    st.Page('commit.py', icon=":material/settings:", title="Review changes", url_path="review"),
+    st.Page('commit.py', icon=":material/settings:", title="Apply changes", url_path="apply"),
 ]
 hidden_pages = [
     st.Page('edit-user.py', icon=":material/settings:", title="Edit user", url_path="user"),
