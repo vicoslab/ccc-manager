@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 import itertools
 import container
 from confirmation import confirmation
@@ -17,16 +16,6 @@ if 'selected_user' not in st.session_state:
 group, id = st.session_state['selected_user']
 user_df = st.session_state['user_df'][group]
 person = user_df.iloc[id]
-
-# selection = st.dataframe(shown_containers, column_config=colcfg.container,
-#     key = 'containers',
-#     selection_mode = 'single-row',
-#     on_select = 'rerun',
-#     hide_index = True,
-# )
-# if selection['selection']['rows']:
-#     st.session_state['selected_container'] = selection['selection']['rows'][0]
-#     st.switch_page('edit-container.py')
 
 inputs = {}
 

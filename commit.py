@@ -1,6 +1,4 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 from yamlhandler import save_users, save_containers, load_users, load_containers
 import subprocess
 import tempfile

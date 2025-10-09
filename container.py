@@ -1,27 +1,7 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import itertools
-import math
 import random
 import config
 from image_info import get_available_images
-
-df_columns = {
-    'STACK_NAME': 'Container name',
-    'STORAGE_NAME': 'Storage name',
-    'USER_EMAIL': 'User email',
-    'CONTAINER_IMAGE': 'Docker image',
-    'INSTALL_PACKAGES': 'Packages',
-    'RUN_PRIVILEGED': 'Privileged',
-    'ENABLE_DOCKER_ACCESS': 'Docker access',
-    'SHM_SIZE': 'Shared memory',
-    'FRP_PORTS': 'FRP ports',
-    'ALLOWED_NODES': 'Allowed nodes',
-    'DEPLOYMENT_NODES': 'Deployment nodes',
-    'EXTRA_ENVS': 'Extra envs',
-    'DISABLED': 'Disabled',
-}
 
 def checknan(x, default):
     if x == x:
