@@ -32,7 +32,7 @@ def checknan(x, default):
 def add_container_with_defaults(df, name, email):
     # all base images with cuda (they already come sorted descending by version)
     images = [x for x in get_available_images() if ':base-' in x and 'cuda' in x]
-    pass_ = config.PASSWORD_FORMAT.format(user=name[0], rand=f'{random.getrandbits(20):05x}')
+    pass_ = config.PASSWORD_FORMAT.format(user=name[0], rand=f'{random.getrandbits(128):032x}')
     i = len(df)
     df.loc[i, ['STACK_NAME', 'USER_EMAIL', 'CONTAINER_IMAGE', 'SHM_SIZE', 'FRP_PORTS', 'EXTRA_ENVS']] = [
         f'{"".join(name)}-workspace',

@@ -6,9 +6,7 @@ import subprocess
 import tempfile
 from ansi2html import Ansi2HTMLConverter
 from confirmation import confirmation
-
-_user_yaml = '../inventory/group_vars/ccc-cluster/user-list.yml'
-_container_yaml = '../inventory/group_vars/ccc-cluster/user-containers.yml'
+import config
     
 conv = Ansi2HTMLConverter()
 convert = lambda x: f'<div>{conv.convert(x, full=False)}</div>'
@@ -18,7 +16,7 @@ with tempfile.NamedTemporaryFile('w') as f:
     save_users(st.session_state, f)
     f.write('\0x04')
     diff = subprocess.run(
-        ['git', 'diff', '--no-index', '--color', '--ws-error-highlight=all', _user_yaml, f.name],
+        ['git', 'diff', '--no-index', '--color', '--ws-error-highlight=all', config.users, f.name],
         capture_output=True
     ).stdout.decode().splitlines()
     
@@ -37,7 +35,7 @@ with tempfile.NamedTemporaryFile('w') as f:
     save_containers(st.session_state, f)
     f.write('\0x04')
     diff = subprocess.run(
-        ['git', 'diff', '--no-index', '--color', '--ws-error-highlight=all', _container_yaml, f.name],
+        ['git', 'diff', '--no-index', '--color', '--ws-error-highlight=all', config.containers, f.name],
         capture_output=True
     ).stdout.decode().splitlines()
     
@@ -54,18 +52,18 @@ with tempfile.NamedTemporaryFile('w') as f:
 
 confirm_discard = confirmation('Confirm discard')
 def discard():
-    with open(_user_yaml) as f:
+    with open(config.users) as f:
         load_users(st.session_state, f)
 
-    with open(_container_yaml) as f:
+    with open(config.containers) as f:
         load_containers(st.session_state, f)
 
 with st.container(horizontal=True):
     if st.button("Save"):
-        with open(_user_yaml, 'w') as f:
+        with open(config.users, 'w') as f:
             save_users(st.session_state, f)
             
-        with open(_container_yaml, 'w') as f:
+        with open(config.containers, 'w') as f:
             save_containers(st.session_state, f)
 
     if st.button('Discard changes', type='primary'):
