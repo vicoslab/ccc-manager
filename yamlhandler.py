@@ -65,8 +65,8 @@ def load_users(state, fd):
     state['_user_data_raw'] = { k: yaml.load(prefix + v) for k, v in items }
     
     state['user_df'] = {}
+    state['roles'] = [*ruamel.yaml.YAML().load(full)['deployment_types'].keys()]
     mentors = []
-    roles = []
     order = ['USER_FULLNAME','USER_EMAIL','USER_MENTOR','USER_NAME','USER_PUBKEY','USER_PUBKEY_FROM_GITHUB','USER_TYPE', 'ADDITIONAL_DEVICE_GROUPS', 'ADDITIONAL_PRIVATE_DATA_MOUNT_GROUPS', 'ADMIN_USER_ACCESS', 'DISABLED', 'PURGE_USER_DATA']
     for group, v in state['_user_data_raw'].items():    
 
@@ -82,16 +82,14 @@ def load_users(state, fd):
                 df[k] = None
         
         df = df[order]
-        df['USER_TYPE'] = df['USER_TYPE'].astype('category')
+        df['USER_TYPE'] = df['USER_TYPE'].astype('category').cat.set_categories(state['roles'])
         df['USER_MENTOR'] = df['USER_MENTOR'].astype('category')
         mentors += list(df['USER_MENTOR'].cat.categories)
-        roles += list(df['USER_TYPE'].cat.categories)
         df['ADDITIONAL_PRIVATE_DATA_MOUNT_GROUPS'] = df['ADDITIONAL_PRIVATE_DATA_MOUNT_GROUPS'].apply(lambda x: [] if x != x or x is None else list(x))
 
         state['user_df'][group] = df
     
     state['mentors'] = list(set(mentors))
-    state['roles'] = sorted(list(set(roles)), key=len)
 
 def save_users(state, fd):
     
