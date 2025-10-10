@@ -86,7 +86,7 @@ def show_ui(user_group, container_group, id, key=None):
         @st.dialog('Edit http port', on_dismiss='rerun')
         def edit_http(i):
 
-            http = container['FRP_PORTS']['HTTP'][i]
+            http = ports['HTTP'][i]
             
             with st.form('Edit HTTP port'):
                 cols = st.columns(2)
@@ -180,15 +180,18 @@ def show_ui(user_group, container_group, id, key=None):
         if flex.button('', icon=':material/add:', key=f'c{key}-newenv'):
             edit_env()
     
-    if 'HTTP' in container['FRP_PORTS']:
-        http = container['FRP_PORTS']['HTTP']
-        if 'user' in http and not http['user']:
-            del http['user']
-        if 'https_without_pass' in http and not http['https_without_pass']:
-            del http['https_without_pass']
-        # default is true
-        if 'subdomain_hostname_prefix' in http and http['subdomain_hostname_prefix']:
-            del http['subdomain_hostname_prefix']
+        if 'HTTP' in ports:
+            http = ports['HTTP']
+            if http == []:
+                del ports['HTTP']
+            for port in http:
+                if 'user' in port and not port['user']:
+                    del port['user']
+                if 'https_without_pass' in port and not port['https_without_pass']:
+                    del port['https_without_pass']
+                # default is true
+                if 'subdomain_hostname_prefix' in port and port['subdomain_hostname_prefix']:
+                    del port['subdomain_hostname_prefix']
     
     for k,v in inputs.items():
         if isinstance(v, str):
