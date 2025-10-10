@@ -14,19 +14,29 @@ with tempfile.NamedTemporaryFile('w') as f:
     save_users(st.session_state, f)
     f.write('\0x04')
     user_diff = subprocess.run(
-        ['git', 'diff', '--no-index', '--color', '--ws-error-highlight=all', config.users, f.name],
+        ['git', 'diff', '--no-index', '--color', '--ws-error-highlight=all', '-p', '--numstat', config.users, f.name],
         capture_output=True
     ).stdout.decode().splitlines()
-    st.session_state.diff_size += len(user_diff)
+    
+    # parse numstat line and skip it
+    if user_diff:
+        add, del_, _ = user_diff[0].split('\t', maxsplit=3)
+        st.session_state.diff_size += int(add) + int(del_)
+        user_diff = user_diff[2:]
 
 with tempfile.NamedTemporaryFile('w') as f:
     save_containers(st.session_state, f)
     f.write('\0x04')
     container_diff = subprocess.run(
-        ['git', 'diff', '--no-index', '--color', '--ws-error-highlight=all', config.containers, f.name],
+        ['git', 'diff', '--no-index', '--color', '--ws-error-highlight=all', '-p', '--numstat', config.containers, f.name],
         capture_output=True
     ).stdout.decode().splitlines()
-    st.session_state.diff_size += len(container_diff)
+
+    # parse numstat line and skip it
+    if container_diff:
+        add, del_, _ = container_diff[0].split('\t', maxsplit=3)
+        st.session_state.diff_size += int(add) + int(del_)
+        container_diff = container_diff[2:]
 
 
 confirm_discard = confirmation('Confirm discard')
@@ -52,7 +62,7 @@ def commit():
 
 if st.session_state.diff_size > 0:
     with st.container(horizontal=True):
-        if st.session_state.diff_size > 50:
+        if st.session_state.diff_size > 20:
             with st.popover('Save'):
                 st.write('Large diff detected. Are you sure you want to save?')
                 with st.container(horizontal=True, horizontal_alignment='right'):
