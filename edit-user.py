@@ -2,6 +2,8 @@ import streamlit as st
 import itertools
 import container
 from confirmation import confirmation
+import random
+import unicodedata
 
 container_df = st.session_state['container_df']
 
@@ -102,5 +104,8 @@ for container_group, df in container_df.items():
                     get_callback(df, id))
 
 if st.button('', icon=':material/add:'):
-    container.add_container_with_defaults(container_df[group], 'unnamed-container', person['USER_EMAIL'])
+    rand = f'{random.getrandbits(20):05x}'
+    container_name = f'unnamed-container-{rand}'
+    name = unicodedata.normalize('NFKD', person['USER_FULLNAME']).encode('ascii','ignore').decode().lower().split(' ')
+    container.add_container_with_defaults(container_df[group], name + [rand], container_name, person['USER_EMAIL'])
     st.rerun()

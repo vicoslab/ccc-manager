@@ -9,20 +9,22 @@ def checknan(x, default):
     return default
 
 
-def add_container_with_defaults(df, name, email):
+def add_container_with_defaults(df, user_name, container_name, email):
     # all base images with cuda (they already come sorted descending by version)
     images = [x for x in get_available_images() if ':base-' in x and 'cuda' in x]
-    pass_ = config.PASSWORD_FORMAT.format(user=name[0], rand=f'{random.getrandbits(128):032x}')
+    pass_ = config.PASSWORD_FORMAT.format(*user_name, ['']*3, rand=f'{random.getrandbits(128):032x}')
     i = len(df)
     df.loc[i, ['STACK_NAME', 'USER_EMAIL', 'CONTAINER_IMAGE', 'SHM_SIZE', 'FRP_PORTS', 'EXTRA_ENVS']] = [
-        f'{"".join(name)}-workspace',
+        container_name,
         email,
         images[0],
         '2GB',
-        { 'TCP': [22], 'HTTP': [{'port': 6006, 'subdomain': ''.join(name), 'pass': pass_}] },
+        { 'TCP': [22], 'HTTP': [{'port': 6006, 'subdomain': ''.join(user_name), 'pass': pass_}] },
         { 'CONDA_PLUGINS_AUTO_ACCEPT_TOS': 'yes' },
     ]
     df.at[i, 'INSTALL_PACKAGES'] = 'zip unzip rar unrar tmux htop screen'.split(' ')
+
+    return i
 
 def show_ui(user_group, container_group, id, key=None):
     container_df = st.session_state['container_df'][container_group]

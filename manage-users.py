@@ -19,7 +19,7 @@ def add_user(k, df):
             if st.session_state['mentor_view']:
                 df.loc[email, 'USER_MENTOR'] = st.session_state['mentor_view']
             
-            add_container_with_defaults(container_df[k], name, email)
+            add_container_with_defaults(container_df[k], name, f'{"".join(name)}-workspace', email)
 
             st.session_state['selected_user'] = k, len(df) - 1
             st.switch_page('edit-user.py')
