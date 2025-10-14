@@ -88,6 +88,9 @@ for container_group, df in container_df.items():
     shown_containers = df[mask]
     shown_index = df.index[mask]
 
+    if inputs['USER_EMAIL'] != person['USER_EMAIL'] and len(inputs['USER_EMAIL']):
+        df.loc[mask, 'USER_EMAIL'] = inputs['USER_EMAIL']
+
     for i in range(len(shown_containers)):
         c = shown_containers.iloc[i]
 
