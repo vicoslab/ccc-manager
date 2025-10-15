@@ -24,6 +24,16 @@ def add_user(k, df):
             st.session_state['selected_user'] = k, len(df) - 1
             st.switch_page('edit-user.py')
 
+if st.session_state['mentor_view']:
+    st.html('''
+        <style>
+            blockquote, p {
+                margin: 0 !important;
+            }
+        </style>
+    ''')
+    st.write(f'> Showing only users, mentored by `{st.session_state["mentor_view"]}` ')
+
 for k, df in user_df.items():
     if st.session_state['mentor_view'] and df[df['USER_MENTOR'] == st.session_state['mentor_view']].count()['USER_MENTOR'] == 0:
         continue
@@ -36,7 +46,7 @@ for k, df in user_df.items():
             if st.session_state['mentor_view'] and mentor != st.session_state['mentor_view']:
                 continue
             
-            if mentor == mentor: # not nan
+            if mentor == mentor and not st.session_state['mentor_view']: # not nan
                 mentor = f' `{mentor}`'
             else:
                 mentor = ''
