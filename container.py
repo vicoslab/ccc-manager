@@ -80,6 +80,14 @@ def show_ui(user_group, container_group, id, key=None):
             accept_new_options=True,
             key=f'c{key}-tcp')
         
+        i = 0
+        while i < len(ports['TCP']):
+            try:
+                ports['TCP'][i] = int(ports['TCP'][i])
+                i += 1
+            except IndexError:
+                del ports['TCP'][i]
+        
         cols[1].html('<label><p style="margin: 0; font-size: 0.875rem; margin-bottom: -0.6rem;">HTTP ports</p></label>')
         flex = cols[1].container(horizontal=True, key=f'c{key}-flexhttp')
         
