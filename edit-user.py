@@ -28,6 +28,9 @@ inputs['USER_NAME'] = cols[2].text_input('Username', checknan(person['USER_NAME'
 
 cols = st.columns(2)
 mentors = st.session_state['mentors']
+if person['USER_MENTOR'] == person['USER_MENTOR'] and person['USER_MENTOR'] not in mentors:
+    mentors = mentors + [person['USER_MENTOR']]
+
 roles = st.session_state['roles']
 inputs['USER_TYPE'] = cols[0].segmented_control('Role', roles, default = checknan(person['USER_TYPE'], 'student'), key='user-role')
 inputs['USER_MENTOR'] = cols[1].selectbox('Mentor', mentors, mentors.index(person['USER_MENTOR']) if person['USER_MENTOR'] in mentors else None, accept_new_options = True)
