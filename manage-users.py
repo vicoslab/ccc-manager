@@ -38,7 +38,7 @@ for k, df in user_df.items():
     if st.session_state['mentor_view'] and df[df['USER_MENTOR'] == st.session_state['mentor_view']].count()['USER_MENTOR'] == 0:
         continue
     
-    st.write(f'## {k}')
+    st.header(k, divider='gray')
 
     with st.container(horizontal=True, key=f'user-{k}'):
         for i, idx in enumerate(df.index):

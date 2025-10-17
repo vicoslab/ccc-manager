@@ -96,7 +96,7 @@ if st.session_state.diff_size > 0:
         if st.button('Discard changes', type='primary'):
             confirm_discard('Are you sure you want to discard changes?', discard)
 
-st.write('## Changes in user configuration')
+st.header(':blue[Changes in user configuration]', divider='blue')
 if user_diff:
     st.html(f'''
         {conv.produce_headers()}
@@ -105,7 +105,7 @@ if user_diff:
 else:
     st.write('No changes')
 
-st.write('## Changes in container configuration')
+st.header(':blue[Changes in container configuration]', divider='blue')
 if container_diff:
     st.html(f'''
         {conv.produce_headers()}
