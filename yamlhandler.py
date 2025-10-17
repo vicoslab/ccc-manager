@@ -6,6 +6,8 @@ from ruamel.yaml.tokens import CommentToken
 from ruamel.yaml.error import CommentMark
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 import pandas as pd
+from collections import Counter
+
 import container
 
 yaml = ruamel.yaml.YAML(typ=['string'])
@@ -83,13 +85,12 @@ def load_users(state, fd):
         
         df = df[order]
         df['USER_TYPE'] = df['USER_TYPE'].astype('category').cat.set_categories(state['roles'])
-        df['USER_MENTOR'] = df['USER_MENTOR'].astype('category')
-        mentors += list(df['USER_MENTOR'].cat.categories)
+        mentors += list(df['USER_MENTOR'].dropna())
         df['ADDITIONAL_PRIVATE_DATA_MOUNT_GROUPS'] = df['ADDITIONAL_PRIVATE_DATA_MOUNT_GROUPS'].apply(lambda x: [] if x != x or x is None else list(x))
 
         state['user_df'][group] = df
     
-    state['mentors'] = list(set(mentors))
+    state['mentors'] = [k for k,_ in Counter(mentors).most_common()]
 
 def save_users(state, fd):
     
