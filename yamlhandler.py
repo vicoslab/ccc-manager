@@ -120,6 +120,10 @@ def save_users(state, fd):
                     if k in x and hasattr(x[k], 'ca'):
                         x[k].ca.comment = el[k].ca.comment
                         x[k].ca._items = el[k].ca.items
+                last = list(x)[-1]
+                if last not in el and k in el.ca.items and el.ca.items[k][2].value == '\n\n':
+                    x.ca.items[last] = el.ca.items[k] # probably shouldn't copy the entire thing
+                    del x.ca.items[k]
 
 
             # Skip newline in front if previous element ends with ADDITIONAL_PRIVATE_DATA_MOUNT_GROUPS
