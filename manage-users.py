@@ -35,16 +35,26 @@ if st.session_state['mentor_view']:
     st.write(f'> Showing only users, mentored by `{st.session_state["mentor_view"]}` ')
 
 for k, df in user_df.items():
-    if st.session_state['mentor_view'] and df[df['USER_MENTOR'] == st.session_state['mentor_view']].count()['USER_MENTOR'] == 0:
+    filtered = df
+    if st.session_state['mentor_view']:
+        filtered = filtered[filtered['USER_MENTOR'] == st.session_state['mentor_view']]
+    
+    if not st.session_state.view_deleted:
+        filtered = filtered[filtered['DISABLED'] != True]
+
+    if len(filtered) == 0:
         continue
     
     st.header(k, divider='gray')
 
     with st.container(horizontal=True, key=f'user-{k}'):
-        for i, idx in enumerate(df.index):
-            name, mentor = df.loc[idx, ['USER_FULLNAME', 'USER_MENTOR']]
+        for i, idx in enumerate(filtered.index):
+            name, mentor, disabled = filtered.loc[idx, ['USER_FULLNAME', 'USER_MENTOR', 'DISABLED']]
             if st.session_state['mentor_view'] and mentor != st.session_state['mentor_view']:
                 continue
+            
+            if disabled == disabled and disabled:
+                name = f':red[{name}]'
             
             if mentor == mentor and not st.session_state['mentor_view']: # not nan
                 mentor = f' `{mentor}`'

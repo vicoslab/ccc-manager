@@ -50,11 +50,12 @@ if not hasattr(st.session_state, 'container_df'):
 with st.sidebar.container(key='global-options'):
     if 'advanced_mode' not in st.session_state:
         st.session_state.advanced_mode = False
+    if 'view_deleted' not in st.session_state:
+        st.session_state.view_deleted = False
 
     st.session_state['mentor_view'] = st.selectbox('View as mentor', st.session_state['mentors'], None, placeholder='View as mentor', label_visibility='hidden')
-    a = st.toggle('Show extra options', st.session_state.advanced_mode, key='advanced-toggle')
-    if a != st.session_state.advanced_mode:
-        st.session_state.advanced_mode = a
+    st.session_state.advanced_mode = st.toggle('Show extra options', st.session_state.advanced_mode, key='advanced-toggle')
+    st.session_state.view_deleted = st.toggle('Show deleted users', st.session_state.view_deleted, key='deleted-toggle')
 
 st.title(f"{current_page.icon} {current_page.title}")
 
