@@ -52,7 +52,7 @@ for k, df in user_df.items():
                 mentor = ''
 
             if st.button(name + mentor, key=f'{k}-{i}'):
-                st.session_state['selected_user'] = k, i
+                st.session_state['selected_user'] = k, idx
                 st.switch_page('edit-user.py')
 
         if st.button('', icon=':material/add:', key=f'add-{k}'):

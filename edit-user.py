@@ -17,7 +17,7 @@ if 'selected_user' not in st.session_state:
 
 group, id = st.session_state['selected_user']
 user_df = st.session_state['user_df'][group]
-person = user_df.iloc[id]
+person = user_df.loc[id]
 
 inputs = {}
 
@@ -67,19 +67,18 @@ if st.session_state.advanced_mode:
 
 # Make sure we write back only things that actually changed
 for k,v in inputs.items():
-    row_index = user_df.index[id]
     if isinstance(v, str):
         if person[k] != v:
-            user_df.loc[row_index, k] = v if v != '' else None
+            user_df.loc[id, k] = v if v != '' else None
     elif isinstance(v, list):
         if person[k] != v:
-            user_df.loc[row_index, k] = v if v != [] else None
+            user_df.loc[id, k] = v if v != [] else None
     elif isinstance(v, bool):
         if person[k] != v:
-            user_df.loc[row_index, k] = v if v != False else None
+            user_df.loc[id, k] = v if v != False else None
     elif v == None:
         if person[k] != v:
-            user_df.loc[row_index, k] = None            
+            user_df.loc[id, k] = None            
     else:
         raise ValueError(f'Unexpected type for key \'{k}\'', v)
 
