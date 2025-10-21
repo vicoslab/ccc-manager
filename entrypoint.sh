@@ -11,15 +11,14 @@ done
 git config --global user.name "$GIT_USER_NAME"
 git config --global user.email "$GIT_USER_EMAIL"
 
-if [[ -n $CCC_INVENTORY ]]; then
-    if [[ -z $CCC_INVENTORY_BRANCH ]]; then
-        echo "When $CCC_INVENTORY is set, $CCC_INVENTORY_BRANCH must be set as well"
+if [[ -e /opt/ccc-inventory/.git ]]; then
+    echo "Found provided /opt/ccc-inventory"
+else
+    if [[ -z $CCC_INVENTORY || -z $CCC_INVENTORY_BRANCH ]]; then
+        echo 'When /opt/ccc-inventory is not provided, $CCC_INVENTORY and $CCC_INVENTORY_BRANCH must be set.'
         exit 1
     fi
     git clone -b $CCC_INVENTORY_BRANCH $CCC_INVENTORY /opt/ccc-inventory || exit 1
-elif [[ ! -e /opt/ccc-inventory ]]; then
-    echo "CCC_INVENTORY is empty and /opt/ccc-inventory was not provided. Exiting."
-    exit 1
 fi
 
 exec streamlit run index.py
