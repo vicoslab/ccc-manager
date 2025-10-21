@@ -27,7 +27,7 @@ def add_container_with_defaults(df, user_name, container_name, email):
 
 def show_ui(user_group, container_group, id, key=None):
     container_df = st.session_state['container_df'][container_group]
-    user_df = st.session_state['user_df'][user_group]
+    user_df = st.session_state['user_df'][user_group] if user_group else None
     container = container_df.loc[id]
 
     if 'available_images' not in st.session_state:
@@ -99,7 +99,8 @@ def show_ui(user_group, container_group, id, key=None):
                 cols = st.columns(2)
                 
                 inputs = {}
-                inputs['user'] = cols[0].text_input('User', http['user'] if 'user' in http else None, placeholder=user_df.loc[container['USER_EMAIL']]['USER_NAME'])
+                default_username = None if user_df is None else user_df.loc[container['USER_EMAIL']]['USER_NAME']
+                inputs['user'] = cols[0].text_input('User', http['user'] if 'user' in http else None, placeholder=default_username)
                 inputs['pass'] = cols[1].text_input('Password', http['pass'] if 'pass' in http else None)
                 
                 cols = st.columns(2)
@@ -138,8 +139,6 @@ def show_ui(user_group, container_group, id, key=None):
             i = len(ports['HTTP'])
             ports['HTTP'].append({ 'port': '', 'subdomain': '' })
             edit_http(i)
-        
-        #inputs['FRP_PORTS'] = st.text_area('FRP ports [YAML]', container['FRP_PORTS'], key=f'c{key}-frp')
         
         cols = st.columns(2)
         inputs['ALLOWED_NODES'] = cols[0].multiselect(

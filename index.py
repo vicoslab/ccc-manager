@@ -9,6 +9,7 @@ nav_pages = [
     st.Page('commit.py', icon=":material/settings:", title="Apply changes", url_path="apply"),
 ]
 hidden_pages = [
+    st.Page('lost-containers.py', icon=":material/deployed_code:", title="Orphaned containers", url_path="containers"),
     st.Page('edit-user.py', icon=":material/settings:", title="Edit user", url_path="user"),
 ]
 
@@ -55,7 +56,7 @@ with st.sidebar.container(key='global-options'):
 
     st.session_state['mentor_view'] = st.selectbox('View as mentor', st.session_state['mentors'], None, placeholder='View as mentor', label_visibility='hidden')
     st.session_state.advanced_mode = st.toggle('Show extra options', st.session_state.advanced_mode, key='advanced-toggle')
-    st.session_state.view_deleted = st.toggle('Show deleted users', st.session_state.view_deleted, key='deleted-toggle')
+    st.session_state.view_deleted = st.toggle('Show disabled users', st.session_state.view_deleted, key='deleted-toggle')
 
 st.title(f"{current_page.icon} {current_page.title}")
 

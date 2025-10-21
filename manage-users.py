@@ -67,3 +67,5 @@ for k, df in user_df.items():
 
         if st.button('', icon=':material/add:', key=f'add-{k}'):
             add_user(k, df)
+
+st.write('> To view containers which don\'t belong to any user, click <a href=/containers target=_self>here</a>.', unsafe_allow_html=True)
