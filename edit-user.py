@@ -77,8 +77,8 @@ for k,v in inputs.items():
         if person[k] != v:
             user_df.loc[id, k] = v if v != False else None
     elif v == None:
-        if person[k] != v:
-            user_df.loc[id, k] = None            
+        if person[k] == person[k] and person[k] != v:
+            user_df.loc[id, k] = None
     else:
         raise ValueError(f'Unexpected type for key \'{k}\'', v)
 
