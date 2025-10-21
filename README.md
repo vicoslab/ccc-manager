@@ -30,7 +30,8 @@ GIT_USER_EMAIL=email@example.com
 | GIT_USER_EMAIL | Email used for AUTHOR of commits |
 |||
 |**Optional**||
-| CCC_INVENTORY | Git repository used as the inventory. If not provided, a repository is expected to be mounted in `/opt/ccc-inventory`.|
+| CCC_INVENTORY | Git repository used as the inventory. If not provided (alongside CCC_INVENTORY_BRANCH), a repository is expected to be mounted in `/opt/ccc-inventory`.|
+| CCC_INVENTORY_BRANCH | Git branch from repository. If not provided (alongside CCC_INVENTORY), a repository is expected to be mounted in `/opt/ccc-inventory`.|
 
 ```
 docker run \

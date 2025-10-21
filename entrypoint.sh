@@ -8,12 +8,15 @@ for e in ${envvars[@]}; do
     fi
 done
 
-git config --global --add safe.directory /opt/ccc-inventory
 git config --global user.name "$GIT_USER_NAME"
 git config --global user.email "$GIT_USER_EMAIL"
 
 if [[ -n $CCC_INVENTORY ]]; then
-    git clone $CCC_INVENTORY /opt/ccc-inventory || exit 1
+    if [[ -z $CCC_INVENTORY_BRANCH ]]; then
+        echo "When $CCC_INVENTORY is set, $CCC_INVENTORY_BRANCH must be set as well"
+        exit 1
+    fi
+    git clone -b $CCC_INVENTORY_BRANCH $CCC_INVENTORY /opt/ccc-inventory || exit 1
 elif [[ ! -e /opt/ccc-inventory ]]; then
     echo "CCC_INVENTORY is empty and /opt/ccc-inventory was not provided. Exiting."
     exit 1
