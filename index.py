@@ -42,11 +42,13 @@ if not hasattr(st.session_state, 'nodes'):
     
 if not hasattr(st.session_state, 'user_df'):
     with open(config.users) as f:
-        load_users(st.session_state, f)
+        st.session_state['_user_plaintext'] = f.read()
+        load_users(st.session_state)
 
 if not hasattr(st.session_state, 'container_df'):
     with open(config.containers) as f:
-        load_containers(st.session_state, f)
+        st.session_state['_container_plaintext'] = f.read()
+        load_containers(st.session_state)
 
 with st.sidebar.container(key='global-options'):
     if 'advanced_mode' not in st.session_state:

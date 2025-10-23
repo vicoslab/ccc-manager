@@ -52,10 +52,10 @@ researcher_header = '  ##############################\n  ## ViCoS Researchers ##
 student_phd_header = '  ##############################\n  ## ViCoS Students ############\n  ##############################\n\n  # PhD students\n'
 student_header = '  # Other\n'
 lkm_header = '\n  ##############################\n  ## LKM Researchers/students ##\n  ##############################\n\n'
-def load_users(state, fd):
+def load_users(state):
 
     # read full file and manually section off groups
-    full = fd.read()
+    full = state['_user_plaintext']
     header, rest = full.split(researcher_header)
     researchers, rest = rest.split(student_phd_header)
     stud_phd, rest = rest.split(student_header)
@@ -153,10 +153,10 @@ def save_users(state, fd):
         segments['LKM']
     ]))
 
-def load_containers(state, fd):
+def load_containers(state):
 
     # read full file and manually section off groups
-    full = fd.read()
+    full = state['_container_plaintext']
     header, rest = full.split(researcher_header)
     researchers, rest = rest.split(student_phd_header)
     stud_phd, rest = rest.split(student_header)
