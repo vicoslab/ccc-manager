@@ -7,6 +7,7 @@ from ruamel.yaml.error import CommentMark
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString
 import pandas as pd
 from collections import Counter
+import re
 
 import container
 
@@ -48,20 +49,34 @@ def copy_comments(from_, to):
         to.ca.end = from_.ca.end
 
 # do not change formatting!!!
-researcher_header = '  ##############################\n  ## ViCoS Researchers #########\n  ##############################\n'
-student_phd_header = '  ##############################\n  ## ViCoS Students ############\n  ##############################\n\n  # PhD students\n'
-student_header = '  # Other\n'
-lkm_header = '\n  ##############################\n  ## LKM Researchers/students ##\n  ##############################\n\n'
+researcher_header = r'^  \#{30}\s+\#\# ViCoS Researchers \#{9}\s+\#{30}\s*$\n'
+student_phd_header = r'^  \#{30}\s+\#\# ViCoS Students \#{12}\s+\#{30}\s+\# PhD students$\n'
+student_header = r'^\s+\# Other\s*$\n'
+lkm_header = r'^  \#{30}\s+\#\# LKM Researchers/students \#\#\s+\#{30}\s*$\n'
+
+def split_helper(text, pattern):
+    matches = re.search(pattern, text, re.MULTILINE)
+    
+    if matches:
+        m = matches.group()
+        fst = text[:matches.start()]
+        snd = text[matches.end():]
+        return m, fst, snd
+    else:
+        raise ValueError('Could not split by header ' + pattern)
+
 def load_users(state):
 
     # read full file and manually section off groups
     full = state['_user_plaintext']
-    header, rest = full.split(researcher_header)
-    researchers, rest = rest.split(student_phd_header)
-    stud_phd, rest = rest.split(student_header)
-    stud, lkm = rest.split(lkm_header)
+    try:
+        state['_user_header_researcher'], state['_user_header_raw'], rest = split_helper(full, researcher_header)
+        state['_user_header_student_phd'], researchers, rest = split_helper(rest, student_phd_header)
+        state['_user_header_student'], stud_phd, rest = split_helper(rest, student_header)
+        state['_user_header_lkm'], stud, lkm = split_helper(rest, lkm_header)
+    except ValueError as e:
+        raise ValueError('load_users: ' + str(e))
     
-    state['_user_header_raw'] = header
     prefix = 'data:\n' # since header got split off we add a placeholder to each group individually
     items = [('Researcher', researchers),('PhD', stud_phd),('Student', stud),('LKM', lkm)]
     state['_user_data_raw'] = { k: yaml.load(prefix + v) for k, v in items }
@@ -141,15 +156,14 @@ def save_users(state, fd):
     
     fd.write(''.join([
         state['_user_header_raw'],
-        researcher_header,
+        state['_user_header_researcher'],
         segments['Researcher'],
         '\n' if segments['Researcher'][-2:] != '\n\n' else '',
-        student_phd_header,
+        state['_user_header_student_phd'],
         segments['PhD'],
-        '\n' if segments['PhD'][-2:] != '\n\n' else '',
-        student_header,
+        state['_user_header_student'],
         segments['Student'],
-        lkm_header,
+        state['_user_header_lkm'],
         segments['LKM']
     ]))
 
@@ -157,12 +171,14 @@ def load_containers(state):
 
     # read full file and manually section off groups
     full = state['_container_plaintext']
-    header, rest = full.split(researcher_header)
-    researchers, rest = rest.split(student_phd_header)
-    stud_phd, rest = rest.split(student_header)
-    stud, lkm = rest.split(lkm_header)
+    try:
+        state['_container_header_researcher'], state['_container_header_raw'], rest = split_helper(full, researcher_header)
+        state['_container_header_student_phd'], researchers, rest = split_helper(rest, student_phd_header)
+        state['_container_header_student'], stud_phd, rest = split_helper(rest, student_header)
+        state['_container_header_lkm'], stud, lkm = split_helper(rest, lkm_header)
+    except ValueError as e:
+        raise ValueError('load_containers: ' + str(e))
     
-    state['_container_header_raw'] = header
     prefix = 'deployment_containers:\n' # since header got split off we add a placeholder to each group individually
     items = [('Researcher', researchers),('PhD', stud_phd),('Student', stud),('LKM', lkm)]
     state['_container_data_raw'] = { k: yaml.load(prefix + v.lstrip('\n')) for k, v in items }
@@ -275,15 +291,14 @@ def save_containers(state, fd):
     
     fd.write(''.join([
         state['_container_header_raw'],
-        researcher_header,
+        state['_container_header_researcher'],
         segments['Researcher'],
         '\n' if segments['Researcher'][-2:] != '\n\n' else '',
-        student_phd_header,
+        state['_container_header_student_phd'],
         segments['PhD'],
-        '\n' if segments['PhD'][-2:] != '\n\n' else '',
-        student_header,
+        state['_container_header_student'],
         segments['Student'],
-        lkm_header,
+        state['_container_header_lkm'],
         segments['LKM']
     ]))
 
