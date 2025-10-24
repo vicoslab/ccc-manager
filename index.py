@@ -1,6 +1,7 @@
 import streamlit as st
 import config
 from yamlhandler import load_users, load_containers, load_nodes
+import subprocess
 
 #st.login()
 
@@ -31,24 +32,26 @@ for page in nav_pages:
 
 st.set_page_config(layout="wide")
 
-if not hasattr(st.session_state, 'delete_confirmation'):
+if not hasattr(st.session_state, 'init_done'):
     st.session_state['delete_confirmation'] = 0
-if not hasattr(st.session_state, 'mentor_view'):
     st.session_state['mentor_view'] = None
-    
-if not hasattr(st.session_state, 'nodes'):
-    with open(config.nodes) as f:
-        load_nodes(st.session_state, f)
-    
-if not hasattr(st.session_state, 'user_df'):
-    with open(config.users) as f:
-        st.session_state['_user_plaintext'] = f.read()
-        load_users(st.session_state)
-
-if not hasattr(st.session_state, 'container_df'):
-    with open(config.containers) as f:
-        st.session_state['_container_plaintext'] = f.read()
-        load_containers(st.session_state)
+    with st.spinner("Fetching changes from git..."):
+        print('Initial git pull: ' + subprocess.run(
+            ['git', 'pull', '--ff-only'],
+            cwd='/opt/ccc-inventory',
+            capture_output=True,
+            text=True
+        ).stdout.strip(), flush=True)
+    with st.spinner("Loading yaml...", show_time=True):
+        with open(config.nodes) as f:
+            load_nodes(st.session_state, f)
+        with open(config.users) as f:
+            st.session_state['_user_plaintext'] = f.read()
+            load_users(st.session_state)
+        with open(config.containers) as f:
+            st.session_state['_container_plaintext'] = f.read()
+            load_containers(st.session_state)
+    st.session_state.init_done = True
 
 with st.sidebar.container(key='global-options'):
     if 'advanced_mode' not in st.session_state:
