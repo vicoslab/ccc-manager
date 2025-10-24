@@ -31,7 +31,7 @@ def show_ui(user_group, container_group, id, key=None):
     container = container_df.loc[id]
 
     if 'available_images' not in st.session_state:
-        st.session_state.available_images = get_available_images()
+        st.session_state.available_images = get_available_images(st.session_state)
     images = st.session_state.available_images
     # we don't use set here to keep the ordering
     images += [x for x in container_df['CONTAINER_IMAGE'].cat.categories if x not in images]

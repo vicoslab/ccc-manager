@@ -21,4 +21,5 @@ else
     git clone -b $CCC_INVENTORY_BRANCH $CCC_INVENTORY /opt/ccc-inventory || exit 1
 fi
 
+cron
 exec streamlit run index.py
