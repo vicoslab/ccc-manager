@@ -146,7 +146,7 @@ def save_users(state, fd):
                 continue
             last = user_data['data'][user_data_keys[i-1]]
             lastkey = list(last)[-1]
-            if lastkey != 'ADDITIONAL_PRIVATE_DATA_MOUNT_GROUPS' or last[lastkey].ca.end:
+            if hasattr(last, 'ca') and lastkey in last.ca.items and last.ca.items[lastkey][2].value.endswith('\n'):
                 continue
 
             user_data['data'].ca.set(key, 1, [CommentToken('\n', column=0, start_mark=CommentMark(0))])
@@ -275,7 +275,7 @@ def save_containers(state, fd):
             # Skip newline in front if previous element has a comment (which will add a newline)
             last = container_data['deployment_containers'][i-1]
             lastkey = list(last.keys())[-1]
-            if any([x != None and x[2] is not None for x in last[lastkey].ca.items.values()]):
+            if any([x != None and x[2] is not None and x[2].value.endswith('\n\n') for x in last[lastkey].ca.items.values()]):
                 continue
             if isinstance(last[lastkey], CommentedMap):
                 last = last[lastkey]
