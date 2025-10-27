@@ -104,7 +104,11 @@ for container_group, df in container_df.items():
             if st.button('Delete', key=f'c{container_group}-{i}-del', type='primary'):
                 # this is a bit of a hack to make sure the callback references
                 # the correct values instead of the last ones
-                get_callback = lambda df, id: lambda: df.drop(id, inplace=True)
+                def get_callback(df, id): 
+                    def callback():
+                        df.drop(id, inplace=True)
+                        df.reset_index(drop=True, inplace=True)
+                    return callback
                 confirm_delete(
                     f'Are you sure you want to delete container \'{c["STACK_NAME"]}\'?',
                     get_callback(df, id))
