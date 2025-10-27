@@ -10,7 +10,7 @@ conv = Ansi2HTMLConverter()
 convert = lambda x: f'<div>{conv.convert(x, full=False)}</div>'
 
 base_diff = subprocess.run(
-    ['git', 'diff', '--color', '--ws-error-highlight=all'],
+    ['git', 'diff', '--color'], #, '--ws-error-highlight=all'
     cwd='/opt/ccc-inventory',
     capture_output=True
 ).stdout.decode().splitlines()
@@ -20,7 +20,7 @@ if base_diff:
     subprocess.run(['git', 'restore', '.'], cwd='/opt/ccc-inventory')
 
 def diff(stdin, filename, *flags):
-    default_flags = ['--no-index', '--color', '--ws-error-highlight=all']
+    default_flags = ['--no-index', '--color'] #, '--ws-error-highlight=all'
     return subprocess.run(
         ['git', 'diff', *default_flags, *flags, '-', filename],
         capture_output=True,
