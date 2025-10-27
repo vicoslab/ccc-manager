@@ -36,7 +36,8 @@ inputs['USER_TYPE'] = cols[0].segmented_control('Role', roles, default = checkna
 inputs['USER_MENTOR'] = cols[1].selectbox('Mentor', mentors, mentors.index(person['USER_MENTOR']) if person['USER_MENTOR'] in mentors else None, accept_new_options = True)
 
 cols = st.columns([1,6])
-pubkey = cols[0].segmented_control('Use public key from', options = ['Text', 'GitHub'], default='Text')
+pubkey_source = 'Text' if type(person['USER_PUBKEY']) == str and len(person['USER_PUBKEY']) > 0 else 'GitHub'
+pubkey = cols[0].segmented_control('Use public key from', options = ['Text', 'GitHub'], default=pubkey_source)
 if pubkey == 'Text':
     inputs['USER_PUBKEY'] = cols[1].text_area('Public key', checknan(person['USER_PUBKEY'], ''))
     inputs['USER_PUBKEY_FROM_GITHUB'] = checknan(person['USER_PUBKEY_FROM_GITHUB'], '')
