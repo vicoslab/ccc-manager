@@ -10,7 +10,7 @@ def get_available_images(state, cacheFile='./docker-image.cache.txt'):
         if '_cat_images' not in state:
             with open(cacheFile) as f:
                 state['_cat_images'] = f.readlines()
-            return state['_cat_images']
+        return state['_cat_images']
 
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Fetching docker images for ccc')
     url = 'https://hub.docker.com/v2/repositories/vicoslab/ccc/tags?page_size=1000'
