@@ -8,6 +8,13 @@ for e in ${envvars[@]}; do
     fi
 done
 
+if [[ -n $CCC_INVENTORY_SSHKEY ]]; then
+    echo -e $CCC_INVENTORY_SSHKEY > ~/id
+    chmod 600 ~/id
+    export GIT_SSH_COMMAND="ssh -i ~/id -oStrictHostKeyChecking=accept-new"
+    unset CCC_INVENTORY_SSHKEY # doesn't work for docker exec
+fi
+
 git config --global user.name "$GIT_USER_NAME"
 git config --global user.email "$GIT_USER_EMAIL"
 

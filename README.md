@@ -32,6 +32,7 @@ GIT_USER_EMAIL=email@example.com
 |**Optional**||
 | CCC_INVENTORY | Git repository used as the inventory. If not provided (alongside CCC_INVENTORY_BRANCH), a repository is expected to be mounted in `/opt/ccc-inventory`.|
 | CCC_INVENTORY_BRANCH | Git branch from repository. If not provided (alongside CCC_INVENTORY), a repository is expected to be mounted in `/opt/ccc-inventory`.|
+| CCC_INVENTORY_SSHKEY | Authentication with ssh key is also possible, in which case the provided remote must be a ssh url. |
 
 ```
 docker run \
