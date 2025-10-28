@@ -9,7 +9,7 @@ def get_available_images(state, cacheFile='./docker-image.cache.txt'):
         # keep it in state so we don't read file constantly
         if '_cat_images' not in state:
             with open(cacheFile) as f:
-                state['_cat_images'] = f.readlines()
+                state['_cat_images'] = f.read().split('\n')
         return state['_cat_images']
 
     print(datetime.now().strftime("%Y-%m-%d %H:%M:%S"), 'Fetching docker images for ccc')
