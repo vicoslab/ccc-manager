@@ -262,6 +262,9 @@ def save_containers(state, fd):
             if 'EXTRA_ENVS' in x:
                 x['EXTRA_ENVS'] = CommentedMap(x['EXTRA_ENVS'])
                 x['EXTRA_ENVS'].fa.set_block_style()
+                
+                for k in x['EXTRA_ENVS']:
+                    x['EXTRA_ENVS'][k] = DoubleQuotedScalarString(x['EXTRA_ENVS'][k])
 
             # find old comments and attach them to new data
             el = [y for y in old_data if x['STACK_NAME'] == y['STACK_NAME']]
