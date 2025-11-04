@@ -9,7 +9,7 @@ user_df = st.session_state['user_df']
 def add_user(k, df):
         fullname = st.text_input('Full name', key=f'user-{k}-fullname')
         email = st.text_input('Email', key=f'user-{k}-email')
-        mentor = st.selectbox('Mentor', st.session_state.mentors, st.session_state['mentor_view'], accept_new_options = True)
+        mentor = st.selectbox('Mentor', st.session_state.mentors, st.session_state.mentors.index(st.session_state['mentor_view']), accept_new_options = True)
         
         cols = st.columns([2,6])
         pubkey = cols[0].segmented_control('Use public key from', options = ['Text', 'GitHub'], default='Text')
