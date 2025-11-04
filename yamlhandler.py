@@ -4,7 +4,7 @@ from ruamel.yaml.comments import (CommentedSeq, CommentedMap, Comment,
                                   C_VALUE_PRE, C_VALUE_EOL, C_VALUE_POST)
 from ruamel.yaml.tokens import CommentToken
 from ruamel.yaml.error import CommentMark
-from ruamel.yaml.scalarstring import DoubleQuotedScalarString
+from ruamel.yaml.scalarstring import DoubleQuotedScalarString, SingleQuotedScalarString
 import pandas as pd
 from collections import Counter
 import re
@@ -257,7 +257,10 @@ def save_containers(state, fd):
                                 port[k] = DoubleQuotedScalarString(v)
                         x['FRP_PORTS']['HTTP'][j] = port
                         
-                        
+            for k in ['ALLOWED_NODES', 'DEPLOYMENT_NODES']:
+                if k in x:
+                    x[k] = CommentedSeq([SingleQuotedScalarString(node) for node in x[k]])
+                    x[k].fa.set_flow_style()
                 
             if 'EXTRA_ENVS' in x:
                 x['EXTRA_ENVS'] = CommentedMap(x['EXTRA_ENVS'])
