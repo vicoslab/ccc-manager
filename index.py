@@ -26,7 +26,7 @@ st.html('''
 
 current_page = st.navigation(pages=nav_pages + hidden_pages, position='hidden')
 
-st.sidebar.write('## ccc-inventory')
+st.sidebar.write('## ccc-manager')
 for page in nav_pages:
     st.sidebar.page_link(page)
 
