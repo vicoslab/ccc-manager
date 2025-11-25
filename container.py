@@ -2,6 +2,7 @@ import streamlit as st
 import random
 import config
 from image_info import get_available_images
+import logs
 
 def checknan(x, default):
     if x == x:
@@ -153,6 +154,26 @@ def show_ui(user_group, container_group, id, key=None):
             default = checknan(container['DEPLOYMENT_NODES'], None),
             accept_new_options=True,
             key=f'c{key}-ndeploy')
+
+        if 'portainer' in st.session_state:
+            cols[0].html('<label><p style="margin: 0; font-size: 0.875rem; margin-bottom: -0.6rem;">Logs</p></label>')
+            flex = cols[0].container(horizontal=True, key=f'c{key}-flexlogs')
+            for k, (id, containers) in st.session_state['portainer'].items():
+                name = container['STACK_NAME']
+                if name in containers:
+                    @st.dialog(f'`{name}` on `{k}`', width='large')
+                    def show_log(id, container):
+                        with st.spinner('Fetching logs', show_time=True):
+                            lines = logs.show_log(config.PORTAINER_URL, config.PORTAINER_TOKEN, id, container)
+                            def convert(line):
+                                id, message = line
+                                if id == 2:
+                                    return f'<span style="color: yellow;">{message}</span>'
+                                return f'<span style="color: gray;">{message}</span>'
+                        newline = '\n'
+                        st.html(f'''<pre style="overflow: auto;">{newline.join(map(convert, lines))}</pre>''')
+                    if flex.button(k):
+                        show_log(id, name)
         
         inputs['EXTRA_ENVS'] = container['EXTRA_ENVS'].copy() if container['EXTRA_ENVS'] else {}
         cols[1].html('<label><p style="margin: 0; font-size: 0.875rem; margin-bottom: -0.6rem;">Extra environment variables</p></label>')

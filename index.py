@@ -2,6 +2,7 @@ import streamlit as st
 import config
 from yamlhandler import load_users, load_containers, load_nodes
 import subprocess
+import logs
 
 #st.login()
 
@@ -35,6 +36,9 @@ st.set_page_config(layout="wide")
 if not hasattr(st.session_state, 'init_done'):
     st.session_state['delete_confirmation'] = 0
     st.session_state['mentor_view'] = None
+    if config.PORTAINER_TOKEN is not None:
+        with st.spinner('Initializing portainer integration'):
+            st.session_state['portainer'] = logs.init(config.PORTAINER_URL, config.PORTAINER_TOKEN)
     with st.spinner("Fetching changes from git..."):
         print('Initial git pull: ' + subprocess.run(
             ['git', 'pull', '--ff-only'],
