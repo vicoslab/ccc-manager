@@ -16,7 +16,7 @@ ARG ref
 RUN git clone --depth 1 https://github.com/vicoslab/ccc-manager /opt/ccc-manager
 WORKDIR /opt/ccc-manager
 
-RUN python3 image_info.py /opt/ccc-manager/docker-image-cache.txt
+RUN python3 image_info.py /opt/ccc-manager/docker-image.cache.txt
 RUN echo "* * * * 0 cd /opt/ccc-manager && python3 image_info.py /opt/ccc-manager/docker-image.cache.txt >/proc/1/fd/1 2>/proc/1/fd/2" > image_info.cron \
     && crontab -u user image_info.cron
 

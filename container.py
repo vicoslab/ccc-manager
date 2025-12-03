@@ -221,6 +221,9 @@ def show_ui(user_group, container_group, id, key=None):
                     del port['subdomain_hostname_prefix']
     
     for k,v in inputs.items():
+        if v != None and container_df[k].dtype == 'category' and v not in container_df[k].cat.categories:
+            for df in st.session_state['container_df'].values():
+                df[k] = df[k].cat.set_categories([*df[k].cat.categories, v])
         if isinstance(v, str):
             if container[k] != v:
                 container_df.at[id, k] = v if v != '' else None
