@@ -40,3 +40,12 @@ def show_log(base_url, token, endpoint, container):
     if r.ok:
         return parse_log(r.content)
     return None
+
+def _format_line(line):
+    id, message = line
+    if id == 2:
+        return f'<span style="color: yellow;">{message}</span>'
+    return f'<span style="color: gray;">{message}</span>'
+
+def format_html(lines):
+    return '<pre style="overflow: auto;">%s</pre>' % '\n'.join(map(_format_line, lines))

@@ -165,13 +165,7 @@ def show_ui(user_group, container_group, id, key=None):
                     def show_log(id, container):
                         with st.spinner('Fetching logs', show_time=True):
                             lines = logs.show_log(config.PORTAINER_URL, config.PORTAINER_TOKEN, id, container)
-                            def convert(line):
-                                id, message = line
-                                if id == 2:
-                                    return f'<span style="color: yellow;">{message}</span>'
-                                return f'<span style="color: gray;">{message}</span>'
-                        newline = '\n'
-                        st.html(f'''<pre style="overflow: auto;">{newline.join(map(convert, lines))}</pre>''')
+                        st.html(logs.format_html(lines))
                     if flex.button(k):
                         show_log(id, name)
         
