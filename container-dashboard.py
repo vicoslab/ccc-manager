@@ -14,6 +14,9 @@ st.html('''
 [class *= st-key-red] button {
     border: 1px solid #cd2e2e;
 }
+.stSpinner [data-testid="stMarkdownContainer"] /* fix for markdown content breaking up the timer */ {
+    width: unset;
+}
 .stLinkButton a {
     color: skyblue;
     border: 1px solid #87ceeb78;
