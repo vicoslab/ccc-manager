@@ -10,6 +10,9 @@ nav_pages = [
     st.Page('manage-users.py', icon=":material/person:", title="Manage users"),
     st.Page('commit.py', icon=":material/settings:", title="Apply changes", url_path="apply"),
 ]
+if config.PORTAINER_TOKEN is not None:
+    nav_pages.append(st.Page('container-dashboard.py', icon=":material/deployed_code_alert:", title="Deployed containers", url_path="dashboard"))
+
 hidden_pages = [
     st.Page('lost-containers.py', icon=":material/deployed_code:", title="Orphaned containers", url_path="containers"),
     st.Page('edit-user.py', icon=":material/settings:", title="Edit user", url_path="user"),

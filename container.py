@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import config
 from image_info import get_available_images
-import logs
+from logs import fetch_logs, format_html
 
 def checknan(x, default):
     if x == x:
@@ -26,7 +26,7 @@ def add_container_with_defaults(df, user_name, container_name, email):
 
     return i
 
-def show_ui(user_group, container_group, id, key=None):
+def show_ui(user_group, container_group, id, key):
     container_df = st.session_state['container_df'][container_group]
     user_df = st.session_state['user_df'][user_group] if user_group else None
     container = container_df.loc[id]
@@ -158,16 +158,16 @@ def show_ui(user_group, container_group, id, key=None):
         if 'portainer' in st.session_state:
             cols[0].html('<label><p style="margin: 0; font-size: 0.875rem; margin-bottom: -0.6rem;">Logs</p></label>')
             flex = cols[0].container(horizontal=True, key=f'c{key}-flexlogs')
-            for k, (id, containers) in st.session_state['portainer'].items():
+            for k, (eid, containers) in st.session_state['portainer'].items():
                 name = container['STACK_NAME']
                 if name in containers:
                     @st.dialog(f'`{name}` on `{k}`', width='large')
-                    def show_log(id, container):
+                    def show_log(eid, container):
                         with st.spinner('Fetching logs', show_time=True):
-                            lines = logs.show_log(config.PORTAINER_URL, config.PORTAINER_TOKEN, id, container)
-                        st.html(logs.format_html(lines))
-                    if flex.button(k):
-                        show_log(id, name)
+                            lines = fetch_logs(config.PORTAINER_URL, config.PORTAINER_TOKEN, eid, [container])[0]
+                        st.html(format_html(lines))
+                    if flex.button(k, key=f'c{key}-{k}-logs'):
+                        show_log(eid, name)
         
         inputs['EXTRA_ENVS'] = container['EXTRA_ENVS'].copy() if container['EXTRA_ENVS'] else {}
         cols[1].html('<label><p style="margin: 0; font-size: 0.875rem; margin-bottom: -0.6rem;">Extra environment variables</p></label>')

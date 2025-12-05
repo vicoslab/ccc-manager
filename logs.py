@@ -1,5 +1,7 @@
 import requests
 import json
+import asyncio
+import httpx
 
 def parse_endpoints(content):
     servers = {}
@@ -8,8 +10,7 @@ def parse_endpoints(content):
         name = endpoint['Name']
 
         assert len(endpoint['Snapshots']) == 1
-        containers = endpoint['Snapshots'][0]['DockerSnapshotRaw']['Containers']
-        containers = [x['Names'][0][1:] for x in containers]
+        containers = { c['Names'][0][1:]: c for c in endpoint['Snapshots'][0]['DockerSnapshotRaw']['Containers'] }
 
         servers[name] = id, containers
     return servers
@@ -22,7 +23,7 @@ def init(base_url, token):
         return parse_endpoints(r.content)
     return None
 
-def parse_log(content):    
+def parse_log(content):
     lines = []
     for line in content.split(b'\n'):
         if len(line) > 8:
@@ -32,14 +33,25 @@ def parse_log(content):
             lines.append((type, message))
     return lines
 
-def show_log(base_url, token, endpoint, container):
-    url = f'{base_url}/api/endpoints/{endpoint}/docker/containers/{container}/logs'
+def fetch_logs(base_url, token, endpoint, containers):
     params = { 'stdout': 1, 'stderr': 1 }
-    headers = {'X-API-Key': token}
-    r = requests.get(url, headers=headers, params=params)
-    if r.ok:
-        return parse_log(r.content)
-    return None
+    headers = { 'X-API-Key': token }
+    url = f'{base_url}/api/endpoints/{endpoint}/docker/containers/%s/logs'
+    
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    limits = httpx.Limits(max_connections=10)
+    client = httpx.AsyncClient(limits = limits)
+
+    tasks = [client.get(url % c, params=params, headers=headers, timeout=60) for c in containers]
+    responses = loop.run_until_complete(asyncio.gather(*tasks))
+    loop.run_until_complete(client.aclose())
+
+    return [parse_log(r.content) if r.status_code == 200 else None for r in responses]
 
 def _format_line(line):
     id, message = line
