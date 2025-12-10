@@ -33,8 +33,10 @@ def parse_log(content):
             lines.append((type, message))
     return lines
 
-def fetch_logs(base_url, token, endpoint, containers):
+def fetch_logs(base_url, token, endpoint, containers, limit=None):
     params = { 'stdout': 1, 'stderr': 1 }
+    if limit is not None:
+        params['tail'] = limit
     headers = { 'X-API-Key': token }
     url = f'{base_url}/api/endpoints/{endpoint}/docker/containers/%s/logs'
     

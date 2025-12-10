@@ -50,7 +50,7 @@ if 'servers' not in st.session_state:
         st.session_state['servers'] = {}
         for name, (id, containers) in _servers.items():
             names, values = zip(*[(k,v) for k,v in containers.items() if k in user_containers])
-            l = fetch_logs(config.PORTAINER_URL, config.PORTAINER_TOKEN, id, names)
+            l = fetch_logs(config.PORTAINER_URL, config.PORTAINER_TOKEN, id, names, limit=1000)
             st.session_state['servers'][name] = id, dict(zip(names, zip(values, l)))
 
 if st.button('Refresh'):
