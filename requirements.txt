@@ -1,0 +1,8 @@
+ansi2html==1.9.2
+httpx==0.28.1
+pandas==2.3.3
+Requests==2.32.5
+ruamel.yaml==0.18.16
+ruamel.yaml.string==0.1.1
+st_theme==1.2.3
+streamlit==1.52.1

@@ -29,4 +29,4 @@ else
 fi
 
 cron
-exec streamlit run index.py
+exec python3 -m streamlit run index.py
