@@ -8,6 +8,10 @@ theme = st_theme()
 if theme:
     st.html('''
     <style>
+    h3 > span {{
+        position: absolute;
+        top: 50%;
+    }}
     button:disabled {{
         cursor: unset !important;
         user-select: text;
@@ -50,7 +54,7 @@ if 'servers' not in st.session_state:
         st.session_state['servers'] = {}
         for name, (id, containers) in _servers.items():
             names, values = zip(*[(k,v) for k,v in containers.items() if k in user_containers])
-            l = fetch_logs(config.PORTAINER_URL, config.PORTAINER_TOKEN, id, names, limit=1000)
+            l = fetch_logs(config.PORTAINER_URL, config.PORTAINER_TOKEN, id, names, limit=5000)
             st.session_state['servers'][name] = id, dict(zip(names, zip(values, l)))
 
 if st.button('Refresh'):
@@ -76,16 +80,16 @@ with st.container(key='table'):
         for col, (name, (id, containers)) in zip(cols[1:], servers.items()):
             if c in containers:
                 info, lines = containers[c]
-                text = '🟡'
                 if info['State'] == 'exited':
                     text = '🔴'
                 elif info['State'] == 'running':
                     try:
                         start = len(lines) - 1 - lines[::-1].index((1,'Starting pre-service scripts in /etc/runit_init.d'))
+                        text = '🟡'
                         if any('/etc/runit_init.d/99_welcome_msg.sh' in x for _,x in lines[start:]):
                             text = '🟢'
                     except ValueError:
-                        pass
+                        text = '🟣'
                 if col.button(text, type='tertiary', key=f'dashboard-{name}-{c}', width='stretch'):
                     @st.dialog(f'`{c}` on `{name}`', width='large')
                     def view_logs():
