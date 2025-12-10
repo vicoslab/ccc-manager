@@ -2,44 +2,42 @@ import streamlit as st
 import config
 from logs import fetch_logs, format_html, init
 from itertools import chain
+from streamlit_theme import st_theme
 
-st.html('''
-<style>
-[class *= st-key-yellow] button {
-    border: 1px solid #a38930;
-}
-[class *= st-key-green] button {
-    border: 1px solid forestgreen;
-}
-[class *= st-key-red] button {
-    border: 1px solid #cd2e2e;
-}
-.stSpinner [data-testid="stMarkdownContainer"] /* fix for markdown content breaking up the timer */ {
-    width: unset;
-}
-.stLinkButton a {
-    color: skyblue;
-    border: 1px solid #87ceeb78;
-}
-[class *= st-key-nowrap] button {
-    white-space: nowrap;
-    text-overflow: ellipsis;
-}
-[data-testid="stLayoutWrapper"] {
-    border-bottom: 1px solid transparent;
-}
-[data-testid="stLayoutWrapper"]:hover {
-    border-color: #ffffff66;
-}
-[class *= st-key-table] > div:first-child {
-    position: sticky;
-    align-self: flex-start;
-    top: 50px;
-    background: rgb(14, 17, 23);
-    z-index: 1;
-}
-</style>
-''')
+theme = st_theme()
+if theme:
+    st.html('''
+    <style>
+    button:disabled {{
+        cursor: unset !important;
+        user-select: text;
+    }}
+    .stSpinner [data-testid="stMarkdownContainer"] /* fix for markdown content breaking up the timer */ {{
+        width: unset;
+    }}
+    .stLinkButton a {{
+        color: cornflowerblue;
+        border: 1px solid #518ee778;
+    }}
+    [class *= st-key-nowrap] button {{
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }}
+    [data-testid="stLayoutWrapper"] {{
+        border-bottom: 1px solid transparent;
+    }}
+    [data-testid="stLayoutWrapper"]:hover {{
+        border-color: {fadedText40};
+    }}
+    [class *= st-key-table] > div:first-child {{
+        position: sticky;
+        align-self: flex-start;
+        top: 50px;
+        background: {backgroundColor};
+        z-index: 1;
+    }}
+    </style>
+    '''.format(**theme))
 
 if config.PORTAINER_TOKEN is None:
     st.write('Portainer not available')
@@ -78,12 +76,16 @@ with st.container(key='table'):
         for col, (name, (id, containers)) in zip(cols[1:], servers.items()):
             if c in containers:
                 info, lines = containers[c]
+                text = '🟡'
                 if info['State'] == 'exited':
                     text = '🔴'
-                elif info['State'] == 'running' and any('/etc/runit_init.d/99_welcome_msg.sh' in x for _,x in lines):
-                    text = '🟢'
-                else:
-                    text = '🟡'
+                elif info['State'] == 'running':
+                    try:
+                        start = len(lines) - 1 - lines[::-1].index((1,'Starting pre-service scripts in /etc/runit_init.d'))
+                        if any('/etc/runit_init.d/99_welcome_msg.sh' in x for _,x in lines[start:]):
+                            text = '🟢'
+                    except ValueError:
+                        pass
                 if col.button(text, type='tertiary', key=f'dashboard-{name}-{c}', width='stretch'):
                     @st.dialog(f'`{c}` on `{name}`', width='large')
                     def view_logs():

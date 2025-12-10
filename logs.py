@@ -55,9 +55,24 @@ def fetch_logs(base_url, token, endpoint, containers):
 
 def _format_line(line):
     id, message = line
+    message = message.strip()
     if id == 2:
-        return f'<span style="color: yellow;">{message}</span>'
+        return f'<span style="color: orange;">{message}</span>'
     return f'<span style="color: gray;">{message}</span>'
 
 def format_html(lines):
-    return '<pre style="overflow: auto;">%s</pre>' % '\n'.join(map(_format_line, lines))
+    return '''
+        <style>
+        pre {
+            overflow: auto;
+            counter-reset: line;
+        }
+        pre span:before {
+            counter-increment: line;
+            content: counter(line);
+            display: inline-block;
+            border-right: 1px solid;
+            margin-right: .5em;
+            width: 3em;
+        }
+        </style><pre>%s</pre>''' % '\n'.join(map(_format_line, lines))
