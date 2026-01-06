@@ -80,9 +80,8 @@ with st.container(key='table'):
         for col, (name, (id, containers)) in zip(cols[1:], servers.items()):
             if c in containers:
                 info, lines = containers[c]
-                if info['State'] == 'exited':
-                    text = '🔴'
-                elif info['State'] == 'running':
+                text = '🔴'
+                if info['State'] == 'running':
                     try:
                         start = len(lines) - 1 - lines[::-1].index((1,'Starting pre-service scripts in /etc/runit_init.d'))
                         text = '🟡'
