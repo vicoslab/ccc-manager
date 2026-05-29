@@ -2,6 +2,7 @@ import requests
 import json
 import asyncio
 import httpx
+from html import escape
 
 
 class PortainerAPIError(RuntimeError):
@@ -106,7 +107,7 @@ def fetch_logs(base_url, token, endpoint, containers, limit=None):
         params['tail'] = limit
     headers = _portainer_headers(token)
     url = f'{base_url}/api/endpoints/{endpoint}/docker/containers/%s/logs'
-    
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
@@ -117,21 +118,24 @@ def fetch_logs(base_url, token, endpoint, containers, limit=None):
     client = httpx.AsyncClient(limits = limits)
 
     tasks = [client.get(url % c, params=params, headers=headers, timeout=60) for c in containers]
-    responses = loop.run_until_complete(asyncio.gather(*tasks))
+    responses = loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
     loop.run_until_complete(client.aclose())
 
-    return [parse_log(r.content) if r.status_code == 200 else None for r in responses]
+    return [parse_log(r.content) if isinstance(r, httpx.Response) and r.status_code == 200 else None for r in responses]
 
 
 def _format_line(line):
     id, message = line
-    message = message.strip()
+    message = escape(message.strip())
     if id == 2:
         return f'<span style="color: orange;">{message}</span>'
     return f'<span style="color: gray;">{message}</span>'
 
 
 def format_html(lines):
+    if lines is None:
+        lines = [(2, 'Unable to fetch logs from Portainer for this container.')]
+
     return '''
         <style>
         pre {
