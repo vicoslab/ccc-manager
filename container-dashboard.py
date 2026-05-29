@@ -5,6 +5,26 @@ from streamlit_theme import st_theme
 import re
 
 theme = st_theme()
+st.html('''
+<style>
+/* Keep the deployed-containers dashboard compact so more workspaces fit on one line. */
+[class *= st-key-table] [data-testid="stHorizontalBlock"] {
+    gap: 0.25rem !important;
+}
+[class *= st-key-table] [data-testid="stLayoutWrapper"] {
+    margin-bottom: 0.125rem;
+}
+[class *= st-key-table] button {
+    min-height: 1.75rem;
+    padding: 0.125rem 0.25rem;
+}
+[class *= st-key-table] button p {
+    font-size: 0.875rem;
+    line-height: 1rem;
+}
+</style>
+''')
+
 if theme:
     st.html('''
     <style>
@@ -125,10 +145,10 @@ if 'servers' not in st.session_state:
 servers = st.session_state['servers']
 user_containers = sorted(user_containers)
 
-ncols = len(servers) + 1
+column_widths = [3] + [0.4] * len(servers)
 
 with st.container(key='table'):
-    cols = st.columns(ncols)
+    cols = st.columns(column_widths, gap="small")
     cols[0].subheader('Container')
     for col, title in zip(cols[1:], servers):
         col.subheader(title, text_alignment='center')
@@ -137,8 +157,7 @@ with st.container(key='table'):
         st.write('No containers match the current filter.')
 
     for c in user_containers:
-
-        cols = st.columns(ncols)
+        cols = st.columns(column_widths, gap="small")
         cols[0].button(c, type='tertiary', disabled=True, key=f'nowrap-{c}')
 
         for col, (name, (id, containers)) in zip(cols[1:], servers.items()):
