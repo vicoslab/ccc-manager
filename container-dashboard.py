@@ -100,7 +100,9 @@ if st.button('Refresh'):
     st.rerun()
 
 if 'servers' in st.session_state and st.session_state.get('servers_filter') != tuple(filter_keywords):
+    st.session_state.pop('servers', None)
     st.info('The filter changed. Click Refresh to fetch deployed container status for the current filter.')
+    st.stop()
 
 if 'servers' not in st.session_state and st.session_state.pop('refresh_servers', False):
     with st.spinner('Refreshing containers (this might take a minute)', show_time=True):
