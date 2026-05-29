@@ -64,11 +64,19 @@ def _filter_containers(container_lookup, keywords):
     return selected
 
 
+def _is_valid_stack_name(stack_name):
+    if stack_name is None:
+        return False
+    if isinstance(stack_name, str):
+        return bool(stack_name.strip())
+    return stack_name == stack_name
+
+
 container_lookup = {
     row['STACK_NAME']: row.get('USER_EMAIL')
     for df in st.session_state['container_df'].values()
     for _, row in df.iterrows()
-    if row.get('STACK_NAME') == row.get('STACK_NAME')
+    if _is_valid_stack_name(row.get('STACK_NAME'))
 }
 
 filter_text = st.text_input(
