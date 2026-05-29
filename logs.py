@@ -5,6 +5,27 @@ import httpx
 from html import escape
 
 
+class PortainerAPIError(RuntimeError):
+    pass
+
+
+def _portainer_headers(token):
+    return {'X-API-Key': token}
+
+
+def _raise_for_portainer_error(response, action):
+    if response.ok:
+        return
+
+    detail = response.text.strip()[:200]
+    message = f'Portainer API failed while {action}: HTTP {response.status_code}'
+    if response.status_code in (401, 403):
+        message += '; check that PORTAINER_TOKEN is a valid API key for this Portainer user'
+    if detail:
+        message += f' ({detail})'
+    raise PortainerAPIError(message)
+
+
 def _container_name(container):
     """Return the Docker container name used by the rest of the UI."""
     names = container.get('Names') or []
@@ -47,19 +68,15 @@ def parse_endpoints(content):
 
 def _fetch_endpoint_containers(base_url, token, endpoint_id):
     url = f'{base_url}/api/endpoints/{endpoint_id}/docker/containers/json'
-    headers = {'X-API-Key': token}
-    r = requests.get(url, headers=headers, params={'all': 'true'}, timeout=60)
-    if r.ok:
-        return r.json()
-    return None
+    r = requests.get(url, headers=_portainer_headers(token), params={'all': 'true'}, timeout=60)
+    _raise_for_portainer_error(r, f'listing containers for endpoint {endpoint_id}')
+    return r.json()
 
 
 def init(base_url, token):
     url = base_url + '/api/endpoints'
-    headers = {'X-API-Key': token}
-    r = requests.get(url, headers=headers, timeout=60)
-    if not r.ok:
-        return None
+    r = requests.get(url, headers=_portainer_headers(token), timeout=60)
+    _raise_for_portainer_error(r, 'listing endpoints')
 
     endpoints = r.json()
     servers = {}
@@ -88,9 +105,9 @@ def fetch_logs(base_url, token, endpoint, containers, limit=None):
     params = { 'stdout': 1, 'stderr': 1 }
     if limit is not None:
         params['tail'] = limit
-    headers = { 'X-API-Key': token }
+    headers = _portainer_headers(token)
     url = f'{base_url}/api/endpoints/{endpoint}/docker/containers/%s/logs'
-    
+
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:

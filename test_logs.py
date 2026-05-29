@@ -11,22 +11,24 @@ class LogsPortainerEndpointTests(unittest.TestCase):
         self.assertEqual(servers, {'node-a': (7, {})})
 
     def test_parse_endpoints_reads_legacy_snapshot_containers(self):
-        servers = logs.parse_endpoints(b'''[
-            {
-                "Id": 7,
-                "Name": "node-a",
-                "Snapshots": [
-                    {
-                        "DockerSnapshotRaw": {
-                            "Containers": [
-                                {"Id": "abc", "Names": ["/alice"]},
-                                {"Id": "def", "Names": ["bob"]}
-                            ]
+        servers = logs.parse_endpoints(b'''
+            [
+                {
+                    "Id": 7,
+                    "Name": "node-a",
+                    "Snapshots": [
+                        {
+                            "DockerSnapshotRaw": {
+                                "Containers": [
+                                    {"Id": "abc", "Names": ["/alice"]},
+                                    {"Id": "def", "Names": ["bob"]}
+                                ]
+                            }
                         }
-                    }
-                ]
-            }
-        ]''')
+                    ]
+                }
+            ]
+        ''')
 
         self.assertEqual(set(servers['node-a'][1]), {'alice', 'bob'})
         self.assertEqual(servers['node-a'][1]['alice']['Id'], 'abc')
@@ -49,6 +51,14 @@ class LogsPortainerEndpointTests(unittest.TestCase):
             params={'all': 'true'},
             timeout=60,
         )
+
+    @patch('logs.requests.get')
+    def test_init_reports_authentication_failures(self, get):
+        response = Mock(ok=False, status_code=401, text='Invalid API key')
+        get.return_value = response
+
+        with self.assertRaisesRegex(logs.PortainerAPIError, 'PORTAINER_TOKEN is a valid API key'):
+            logs.init('https://portainer.example', 'expired-token')
 
 
 if __name__ == '__main__':
