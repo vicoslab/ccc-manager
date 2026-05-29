@@ -2,26 +2,76 @@ import requests
 import json
 import asyncio
 import httpx
+from html import escape
+
+
+def _container_name(container):
+    """Return the Docker container name used by the rest of the UI."""
+    names = container.get('Names') or []
+    if not names:
+        return None
+
+    name = names[0]
+    if name.startswith('/'):
+        return name[1:]
+    return name
+
+
+def _containers_by_name(containers):
+    return {
+        name: container
+        for container in containers or []
+        if (name := _container_name(container))
+    }
+
+
+def _snapshot_containers(endpoint):
+    """Extract containers from the endpoint snapshot when Portainer includes it."""
+    for snapshot in endpoint.get('Snapshots') or []:
+        docker_snapshot = snapshot.get('DockerSnapshotRaw') or {}
+        if 'Containers' in docker_snapshot:
+            return docker_snapshot['Containers']
+    return None
+
 
 def parse_endpoints(content):
     servers = {}
     for endpoint in json.loads(content):
         id = endpoint['Id']
         name = endpoint['Name']
+        containers = _snapshot_containers(endpoint)
 
-        assert len(endpoint['Snapshots']) == 1
-        containers = { c['Names'][0][1:]: c for c in endpoint['Snapshots'][0]['DockerSnapshotRaw']['Containers'] }
-
-        servers[name] = id, containers
+        servers[name] = id, _containers_by_name(containers)
     return servers
+
+
+def _fetch_endpoint_containers(base_url, token, endpoint_id):
+    url = f'{base_url}/api/endpoints/{endpoint_id}/docker/containers/json'
+    headers = {'X-API-Key': token}
+    r = requests.get(url, headers=headers, params={'all': 'true'}, timeout=60)
+    if r.ok:
+        return r.json()
+    return None
+
 
 def init(base_url, token):
     url = base_url + '/api/endpoints'
     headers = {'X-API-Key': token}
-    r = requests.get(url, headers=headers)
-    if r.ok:
-        return parse_endpoints(r.content)
-    return None
+    r = requests.get(url, headers=headers, timeout=60)
+    if not r.ok:
+        return None
+
+    endpoints = r.json()
+    servers = {}
+    for endpoint in endpoints:
+        id = endpoint['Id']
+        name = endpoint['Name']
+        containers = _snapshot_containers(endpoint)
+        if containers is None:
+            containers = _fetch_endpoint_containers(base_url, token, id)
+        servers[name] = id, _containers_by_name(containers)
+    return servers
+
 
 def parse_log(content):
     lines = []
@@ -32,6 +82,7 @@ def parse_log(content):
             message = line[8:].decode('utf-8')
             lines.append((type, message))
     return lines
+
 
 def fetch_logs(base_url, token, endpoint, containers, limit=None):
     params = { 'stdout': 1, 'stderr': 1 }
@@ -50,19 +101,24 @@ def fetch_logs(base_url, token, endpoint, containers, limit=None):
     client = httpx.AsyncClient(limits = limits)
 
     tasks = [client.get(url % c, params=params, headers=headers, timeout=60) for c in containers]
-    responses = loop.run_until_complete(asyncio.gather(*tasks))
+    responses = loop.run_until_complete(asyncio.gather(*tasks, return_exceptions=True))
     loop.run_until_complete(client.aclose())
 
-    return [parse_log(r.content) if r.status_code == 200 else None for r in responses]
+    return [parse_log(r.content) if isinstance(r, httpx.Response) and r.status_code == 200 else None for r in responses]
+
 
 def _format_line(line):
     id, message = line
-    message = message.strip()
+    message = escape(message.strip())
     if id == 2:
         return f'<span style="color: orange;">{message}</span>'
     return f'<span style="color: gray;">{message}</span>'
 
+
 def format_html(lines):
+    if lines is None:
+        lines = [(2, 'Unable to fetch logs from Portainer for this container.')]
+
     return '''
         <style>
         pre {
