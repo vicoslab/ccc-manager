@@ -2,7 +2,7 @@ import streamlit as st
 import random
 import config
 from image_info import get_available_images
-from logs import fetch_logs, format_html
+from logs import container_status_icon, fetch_logs, format_html
 
 def checknan(x, default):
     if x == x:
@@ -161,12 +161,18 @@ def show_ui(user_group, container_group, id, key):
             for k, (eid, containers) in st.session_state['portainer'].items():
                 name = container['STACK_NAME']
                 if name in containers:
+                    info = containers[name]
+                    lines = None
+                    if info['State'] == 'running':
+                        lines = fetch_logs(config.PORTAINER_URL, config.PORTAINER_TOKEN, eid, [name], limit=5000)[0]
+                    status = container_status_icon(info, lines)
+
                     @st.dialog(f'`{name}` on `{k}`', width='large')
                     def show_log(eid, container):
                         with st.spinner('Fetching logs', show_time=True):
                             lines = fetch_logs(config.PORTAINER_URL, config.PORTAINER_TOKEN, eid, [container])[0]
                         st.html(format_html(lines))
-                    if flex.button(k, key=f'c{key}-{k}-logs'):
+                    if flex.button(f'{status} {k}', key=f'c{key}-{k}-logs'):
                         show_log(eid, name)
         
         inputs['EXTRA_ENVS'] = container['EXTRA_ENVS'].copy() if container['EXTRA_ENVS'] else {}

@@ -61,5 +61,29 @@ class LogsPortainerEndpointTests(unittest.TestCase):
             logs.init('https://portainer.example', 'expired-token')
 
 
+class LogsContainerStatusIconTests(unittest.TestCase):
+    def test_container_status_icon_reports_stopped_containers_as_red(self):
+        self.assertEqual(logs.container_status_icon({'State': 'exited'}, []), '🔴')
+
+    def test_container_status_icon_reports_running_without_logs_as_white(self):
+        self.assertEqual(logs.container_status_icon({'State': 'running'}, None), '⚪')
+
+    def test_container_status_icon_reports_running_without_start_marker_as_purple(self):
+        self.assertEqual(logs.container_status_icon({'State': 'running'}, [(1, 'service output')]), '🟣')
+
+    def test_container_status_icon_reports_preservice_as_yellow(self):
+        lines = [(1, 'Starting pre-service scripts in /etc/runit_init.d')]
+
+        self.assertEqual(logs.container_status_icon({'State': 'running'}, lines), '🟡')
+
+    def test_container_status_icon_reports_welcome_message_as_green(self):
+        lines = [
+            (1, 'Starting pre-service scripts in /etc/runit_init.d'),
+            (1, 'running /etc/runit_init.d/99_welcome_msg.sh'),
+        ]
+
+        self.assertEqual(logs.container_status_icon({'State': 'running'}, lines), '🟢')
+
+
 if __name__ == '__main__':
     unittest.main()

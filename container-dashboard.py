@@ -1,6 +1,6 @@
 import streamlit as st
 import config
-from logs import fetch_logs, format_html, init
+from logs import container_status_icon, fetch_logs, format_html, init
 from streamlit_theme import st_theme
 import re
 
@@ -163,18 +163,7 @@ with st.container(key='table'):
         for col, (name, (id, containers)) in zip(cols[1:], servers.items()):
             if c in containers:
                 info, lines = containers[c]
-                text = '🔴'
-                if info['State'] == 'running':
-                    if lines is None:
-                        text = '⚪'
-                    else:
-                        try:
-                            start = len(lines) - 1 - lines[::-1].index((1, 'Starting pre-service scripts in /etc/runit_init.d'))
-                            text = '🟡'
-                            if any('/etc/runit_init.d/99_welcome_msg.sh' in x for _, x in lines[start:]):
-                                text = '🟢'
-                        except ValueError:
-                            text = '🟣'
+                text = container_status_icon(info, lines)
                 if col.button(text, type='tertiary', key=f'dashboard-{name}-{c}', width='stretch'):
                     @st.dialog(f'`{c}` on `{name}`', width='large')
                     def view_logs():
