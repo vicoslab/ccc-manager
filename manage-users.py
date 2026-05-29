@@ -82,3 +82,4 @@ for k, df in user_df.items():
             add_user(k, df)
 
 st.write('> To view containers which don\'t belong to any user, click <a href=/containers target=_self>here</a>.', unsafe_allow_html=True)
+st.write('> Advanced users: <a href=/config target=_self>Show current YAML configuration files</a>.', unsafe_allow_html=True)
