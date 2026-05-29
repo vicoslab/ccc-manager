@@ -11,8 +11,8 @@ RUN groupadd user && useradd -m -g user user
 RUN install -ouser -guser -d /opt/ccc-manager /opt/ccc-inventory
 USER user
 
-ARG ref
-RUN git clone --depth 1 https://github.com/vicoslab/ccc-manager /opt/ccc-manager
+ARG REF=master
+RUN git clone --depth 1 --branch "${REF}" https://github.com/vicoslab/ccc-manager /opt/ccc-manager
 WORKDIR /opt/ccc-manager
 
 RUN pip3 install -r requirements.txt
