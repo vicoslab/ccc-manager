@@ -109,9 +109,9 @@ if 'servers' not in st.session_state and st.session_state.pop('refresh_servers',
         _servers = init(config.PORTAINER_URL, config.PORTAINER_TOKEN)
         st.session_state['servers'] = {}
         for name, (id, containers) in _servers.items():
-            selected = [(k, v) for k, v in containers.items() if k in user_containers]
-            if selected:
-                names, values = zip(*selected)
+            user_server_containers = [(k, v) for k, v in containers.items() if k in user_containers]
+            if user_server_containers:
+                names, values = zip(*user_server_containers)
                 l = fetch_logs(config.PORTAINER_URL, config.PORTAINER_TOKEN, id, names, limit=5000)
                 st.session_state['servers'][name] = id, dict(zip(names, zip(values, l)))
             else:
@@ -146,13 +146,16 @@ with st.container(key='table'):
                 info, lines = containers[c]
                 text = '🔴'
                 if info['State'] == 'running':
-                    try:
-                        start = len(lines) - 1 - lines[::-1].index((1,'Starting pre-service scripts in /etc/runit_init.d'))
-                        text = '🟡'
-                        if any('/etc/runit_init.d/99_welcome_msg.sh' in x for _,x in lines[start:]):
-                            text = '🟢'
-                    except ValueError:
-                        text = '🟣'
+                    if lines is None:
+                        text = '⚪'
+                    else:
+                        try:
+                            start = len(lines) - 1 - lines[::-1].index((1, 'Starting pre-service scripts in /etc/runit_init.d'))
+                            text = '🟡'
+                            if any('/etc/runit_init.d/99_welcome_msg.sh' in x for _, x in lines[start:]):
+                                text = '🟢'
+                        except ValueError:
+                            text = '🟣'
                 if col.button(text, type='tertiary', key=f'dashboard-{name}-{c}', width='stretch'):
                     @st.dialog(f'`{c}` on `{name}`', width='large')
                     def view_logs():
