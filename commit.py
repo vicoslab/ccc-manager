@@ -58,9 +58,25 @@ container_filename = config.containers[len(config.INVENTORY_DIR)+1:]
 container_diff = process_diff(st.session_state['_container_plaintext'], save_containers, container_filename)
 
 confirm_discard = confirmation('Confirm discard')
+confirm_clean_clone = confirmation('Confirm clean inventory reset')
+
 def discard():
     load_users(st.session_state)
     load_containers(st.session_state)
+
+def clean_inventory():
+    p = subprocess.run(['bash', 'clean_inventory.sh'], capture_output=True)
+    if p.returncode == 0:
+        discard()
+        st.rerun()
+
+    out = p.stdout.decode().splitlines() + p.stderr.decode().splitlines()
+    st.write(':red[Could not reset the inventory repository.]')
+    st.divider()
+    st.html(f'''
+        {conv.produce_headers()}
+        <pre class='ansi2html-content'>{''.join(map(convert, out))}</pre>
+    ''')
 
 @st.dialog('Commit changes', width='large')
 def commit():
@@ -75,16 +91,28 @@ def commit():
             # Don't discard if script failed as that would import uncommitted changes and no longer show them
             # The changes which we saved will get reverted from the file upon rerun
             if p.returncode == 0:
+                st.session_state.pop('_commit_error_out', None)
                 discard()
                 st.rerun()
             else:
-                out = p.stdout.decode().splitlines()
-                st.write(':red[Could not pull with rebase. Remove any changes causing a merge conflict.]')
-                st.divider()
-                st.html(f'''
-                    {conv.produce_headers()}
-                    <pre class='ansi2html-content'>{''.join(map(convert, out))}</pre>
-                ''')
+                st.session_state['_commit_error_out'] = (
+                    p.stdout.decode().splitlines() + p.stderr.decode().splitlines()
+                )
+
+    if '_commit_error_out' in st.session_state:
+        out = st.session_state['_commit_error_out']
+        st.write(':red[Could not save changes because the inventory repository changed in a conflicting way.]')
+        st.write('The application tried to update the local inventory before applying your changes. If the conflict cannot be resolved automatically, reset the local inventory to a clean copy from the remote and re-enter your changes.')
+        if st.button('Clean git clone / discard local inventory changes'):
+            confirm_clean_clone(
+                'This will discard all local inventory changes and reset the inventory repository to the remote branch. Continue?',
+                clean_inventory,
+            )
+        st.divider()
+        st.html(f'''
+            {conv.produce_headers()}
+            <pre class='ansi2html-content'>{''.join(map(convert, out))}</pre>
+        ''')
 
 if st.session_state.diff_size > 0:
     with st.container(horizontal=True):
