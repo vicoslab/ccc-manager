@@ -59,18 +59,22 @@ def show_ui(user_group, container_group, id, key):
             key=f'c{key}-pkgs')
         
         cols = st.columns([3,1])
-        _tags = ['DISABLED', 'DOCKER', 'PRIVILEGED', 'FUSE']
+        # Known tag aliases (display-name -> column-name); well-known caps get short names
+        _known_tag_display = {'DISABLED': 'DISABLED', 'DOCKER': 'ENABLE_DOCKER_ACCESS', 'PRIVILEGED': 'RUN_PRIVILEGED'}
+        # Non-tag columns handled elsewhere in the UI
+        _non_tag_cols = {'STACK_NAME', 'STORAGE_NAME', 'USER_EMAIL', 'CONTAINER_IMAGE', 'DEPLOYMENT_NODES', 'ALLOWED_NODES', 'INSTALL_PACKAGES', 'SHM_SIZE', 'FRP_PORTS', 'EXTRA_ENVS'}
+        # Dynamically add any additional columns not already covered (e.g. ENABLE_FUSE, future tags)
+        _tag_map = dict(_known_tag_display)
+        for col in container_df.columns:
+            if col not in _non_tag_cols and col not in _tag_map.values():
+                _tag_map[col] = col
         tags = cols[0].multiselect(
             'Tags',
-            _tags,
-            default=[_tags[i] 
-                    for i,v in enumerate(['DISABLED', 'ENABLE_DOCKER_ACCESS', 'RUN_PRIVILEGED', 'ENABLE_FUSE'])
-                    if checknan(container[v], False)],
+            list(_tag_map.keys()),
+            default=[tag for tag, col in _tag_map.items() if checknan(container[col], False)],
             key=f'c{key}-tags')
-        inputs['DISABLED'] = 'DISABLED' in tags
-        inputs['ENABLE_DOCKER_ACCESS'] = 'DOCKER' in tags
-        inputs['RUN_PRIVILEGED'] = 'PRIVILEGED' in tags
-        inputs['ENABLE_FUSE'] = 'FUSE' in tags
+        for tag, col in _tag_map.items():
+            inputs[col] = tag in tags
         inputs['SHM_SIZE'] = cols[1].text_input('Shared memory size', container['SHM_SIZE'], key=f'c{key}-shm')
         
         inputs['FRP_PORTS'] = ports = container['FRP_PORTS'].copy()

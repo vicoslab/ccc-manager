@@ -89,16 +89,14 @@ def load_users(state):
 
         df = pd.DataFrame(v['data']).transpose()
 
-        # Make sure we don't lose any values when reordering
-        for k in df.columns:
-            if k not in order:
-                raise ValueError(f'{k} present in DataFrame but not in reordering')
+        # Add any unknown columns to the end of the order dynamically
+        effective_order = order + [k for k in df.columns if k not in order]
         # Make sure dataframe has all necessary columns
-        for k in order:
+        for k in effective_order:
             if k not in df.columns:
                 df[k] = None
         
-        df = df[order]
+        df = df[effective_order]
         df['USER_TYPE'] = df['USER_TYPE'].astype('category').cat.set_categories(state['roles'])
         mentors += list(df['USER_MENTOR'].dropna())
         df['ADDITIONAL_PRIVATE_DATA_MOUNT_GROUPS'] = df['ADDITIONAL_PRIVATE_DATA_MOUNT_GROUPS'].apply(lambda x: [] if x != x or x is None else list(x))
@@ -191,16 +189,14 @@ def load_containers(state):
         
         df = pd.DataFrame(v['deployment_containers'])
 
-        # Make sure we don't lose any values when reordering
-        for k in df.columns:
-            if k not in order:
-                raise ValueError(f'{k} present in DataFrame but not in reordering')
+        # Add any unknown columns to the end of the order dynamically
+        effective_order = order + [k for k in df.columns if k not in order]
         # Make sure dataframe has all necessary columns
-        for k in order:
+        for k in effective_order:
             if k not in df.columns:
                 df[k] = None
 
-        df = df[order]
+        df = df[effective_order]
 
         df['CONTAINER_IMAGE'] = df['CONTAINER_IMAGE'].astype('category')
         images += [x for x in df['CONTAINER_IMAGE'].cat.categories if x not in images]
