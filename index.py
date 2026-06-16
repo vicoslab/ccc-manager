@@ -4,6 +4,27 @@ from yamlhandler import load_users, load_containers, load_nodes
 import subprocess
 import logs
 
+def get_current_git_head():
+    result = subprocess.run(
+        ['git', 'rev-parse', 'HEAD'],
+        cwd='/opt/ccc-inventory',
+        capture_output=True,
+        text=True
+    )
+    if result.returncode != 0:
+        print(f'Warning: could not read git HEAD: {result.stderr.strip()}', flush=True)
+        return None
+    return result.stdout.strip()
+
+def sync_inventory():
+    with open(config.users) as f:
+        st.session_state['_user_plaintext'] = f.read()
+    load_users(st.session_state)
+    with open(config.containers) as f:
+        st.session_state['_container_plaintext'] = f.read()
+    load_containers(st.session_state)
+    st.session_state['_last_known_git_head'] = get_current_git_head()
+
 #st.login()
 
 nav_pages = [
@@ -54,12 +75,7 @@ if not hasattr(st.session_state, 'init_done'):
     with st.spinner("Loading yaml...", show_time=True):
         with open(config.nodes) as f:
             load_nodes(st.session_state, f)
-        with open(config.users) as f:
-            st.session_state['_user_plaintext'] = f.read()
-            load_users(st.session_state)
-        with open(config.containers) as f:
-            st.session_state['_container_plaintext'] = f.read()
-            load_containers(st.session_state)
+        sync_inventory()
     st.session_state.init_done = True
 
 with st.sidebar.container(key='global-options'):
@@ -71,6 +87,18 @@ with st.sidebar.container(key='global-options'):
     st.session_state['mentor_view'] = st.selectbox('View as mentor', st.session_state['mentors'], None, placeholder='View as mentor', label_visibility='hidden')
     st.session_state.advanced_mode = st.toggle('Show extra options', st.session_state.advanced_mode, key='advanced-toggle')
     st.session_state.view_deleted = st.toggle('Show disabled users', st.session_state.view_deleted, key='deleted-toggle')
+
+current_head = get_current_git_head()
+if current_head and current_head != st.session_state.get('_last_known_git_head'):
+    with st.sidebar:
+        st.warning(
+            'The inventory was updated by another user. '
+            'Syncing will discard any unsaved changes.',
+            icon='⚠️',
+        )
+        if st.button('🔄 Sync now', key='sync-notification', use_container_width=True):
+            sync_inventory()
+            st.rerun()
 
 st.title(f"{current_page.icon} {current_page.title}")
 
