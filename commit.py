@@ -61,6 +61,10 @@ confirm_discard = confirmation('Confirm discard')
 confirm_clean_clone = confirmation('Confirm clean inventory reset')
 
 def discard():
+    with open(config.users) as f:
+        st.session_state['_user_plaintext'] = f.read()
+    with open(config.containers) as f:
+        st.session_state['_container_plaintext'] = f.read()
     load_users(st.session_state)
     load_containers(st.session_state)
 
