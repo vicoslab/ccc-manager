@@ -61,12 +61,13 @@ def show_ui(user_group, container_group, id, key):
         cols = st.columns([3,1])
         # Known tag aliases (display-name -> column-name); well-known caps get short names
         _known_tag_display = {'DISABLED': 'DISABLED', 'DOCKER': 'ENABLE_DOCKER_ACCESS', 'PRIVILEGED': 'RUN_PRIVILEGED'}
-        # Non-tag columns handled elsewhere in the UI
+        # Non-tag columns: those with non-boolean semantics or handled by dedicated UI widgets elsewhere
         _non_tag_cols = {'STACK_NAME', 'STORAGE_NAME', 'USER_EMAIL', 'CONTAINER_IMAGE', 'DEPLOYMENT_NODES', 'ALLOWED_NODES', 'INSTALL_PACKAGES', 'SHM_SIZE', 'FRP_PORTS', 'EXTRA_ENVS'}
         # Dynamically add any additional columns not already covered (e.g. ENABLE_FUSE, future tags)
         _tag_map = dict(_known_tag_display)
+        _known_tag_cols = set(_tag_map.values())
         for col in container_df.columns:
-            if col not in _non_tag_cols and col not in _tag_map.values():
+            if col not in _non_tag_cols and col not in _known_tag_cols:
                 _tag_map[col] = col
         tags = cols[0].multiselect(
             'Tags',
