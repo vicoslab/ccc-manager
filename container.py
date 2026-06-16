@@ -59,17 +59,18 @@ def show_ui(user_group, container_group, id, key):
             key=f'c{key}-pkgs')
         
         cols = st.columns([3,1])
-        _tags = ['DISABLED', 'DOCKER', 'PRIVILEGED']
+        _tags = ['DISABLED', 'DOCKER', 'PRIVILEGED', 'FUSE']
         tags = cols[0].multiselect(
             'Tags',
             _tags,
             default=[_tags[i] 
-                    for i,v in enumerate(['DISABLED', 'ENABLE_DOCKER_ACCESS', 'RUN_PRIVILEGED'])
+                    for i,v in enumerate(['DISABLED', 'ENABLE_DOCKER_ACCESS', 'RUN_PRIVILEGED', 'ENABLE_FUSE'])
                     if checknan(container[v], False)],
             key=f'c{key}-tags')
         inputs['DISABLED'] = 'DISABLED' in tags
         inputs['ENABLE_DOCKER_ACCESS'] = 'DOCKER' in tags
         inputs['RUN_PRIVILEGED'] = 'PRIVILEGED' in tags
+        inputs['ENABLE_FUSE'] = 'FUSE' in tags
         inputs['SHM_SIZE'] = cols[1].text_input('Shared memory size', container['SHM_SIZE'], key=f'c{key}-shm')
         
         inputs['FRP_PORTS'] = ports = container['FRP_PORTS'].copy()

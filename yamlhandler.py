@@ -186,7 +186,7 @@ def load_containers(state):
     state['container_df'] = {}
     images = container.get_available_images(state)
     packages = []
-    order = ['STACK_NAME','STORAGE_NAME','USER_EMAIL','CONTAINER_IMAGE','DEPLOYMENT_NODES','ALLOWED_NODES','INSTALL_PACKAGES', 'RUN_PRIVILEGED','ENABLE_DOCKER_ACCESS','SHM_SIZE', 'DISABLED','FRP_PORTS','EXTRA_ENVS']
+    order = ['STACK_NAME','STORAGE_NAME','USER_EMAIL','CONTAINER_IMAGE','DEPLOYMENT_NODES','ALLOWED_NODES','INSTALL_PACKAGES', 'RUN_PRIVILEGED','ENABLE_DOCKER_ACCESS','ENABLE_FUSE','SHM_SIZE', 'DISABLED','FRP_PORTS','EXTRA_ENVS']
     for group, v in state['_container_data_raw'].items():
         
         df = pd.DataFrame(v['deployment_containers'])
