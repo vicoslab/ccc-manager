@@ -84,6 +84,14 @@ class LogsContainerStatusIconTests(unittest.TestCase):
 
         self.assertEqual(logs.container_status_icon({'State': 'running'}, lines), '🟢')
 
+    def test_container_status_icon_reports_legacy_welcome_message_as_green(self):
+        lines = [
+            (1, 'Starting pre-service scripts in /etc/runit_init.d'),
+            (1, '*** Running: /etc/runit_init.d/10_welcome_msg'),
+        ]
+
+        self.assertEqual(logs.container_status_icon({'State': 'running'}, lines), '🟢')
+
 
 if __name__ == '__main__':
     unittest.main()
