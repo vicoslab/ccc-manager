@@ -100,7 +100,7 @@ def container_status_icon(info, lines):
             try:
                 start = len(lines) - 1 - lines[::-1].index((1, 'Starting pre-service scripts in /etc/runit_init.d'))
                 text = '🟡'
-                if any('/etc/runit_init.d/99_welcome_msg.sh' in x for _, x in lines[start:]):
+                if any('/etc/runit_init.d/' in x and 'welcome_msg' in x for _, x in lines[start:]):
                     text = '🟢'
             except ValueError:
                 text = '🟣'
