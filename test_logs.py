@@ -60,6 +60,44 @@ class LogsPortainerEndpointTests(unittest.TestCase):
         with self.assertRaisesRegex(logs.PortainerAPIError, 'PORTAINER_TOKEN is a valid API key'):
             logs.init('https://portainer.example', 'expired-token')
 
+    @patch('logs.requests.get')
+    def test_init_skips_unreachable_endpoint_and_continues(self, get):
+        endpoints_response = Mock(ok=True)
+        endpoints_response.json.return_value = [
+            {'Id': 1, 'Name': 'node-down'},
+            {'Id': 2, 'Name': 'node-up'},
+        ]
+        down_response = Mock(ok=False, status_code=502, text='{"message":"Proxy failure"}')
+        up_response = Mock(ok=True)
+        up_response.json.return_value = [{'Id': 'abc', 'Names': ['/alice']}]
+        get.side_effect = [endpoints_response, down_response, up_response]
+
+        servers = logs.init('https://portainer.example', 'token')
+
+        _, down_containers = servers['node-down']
+        self.assertEqual(down_containers, {})
+        _, up_containers = servers['node-up']
+        self.assertEqual(up_containers['alice']['Id'], 'abc')
+
+    @patch('logs.requests.get')
+    def test_init_skips_endpoint_on_network_error_and_continues(self, get):
+        import requests as req
+        endpoints_response = Mock(ok=True)
+        endpoints_response.json.return_value = [
+            {'Id': 1, 'Name': 'node-down'},
+            {'Id': 2, 'Name': 'node-up'},
+        ]
+        up_response = Mock(ok=True)
+        up_response.json.return_value = [{'Id': 'def', 'Names': ['/bob']}]
+        get.side_effect = [endpoints_response, req.exceptions.ConnectionError('dial failed'), up_response]
+
+        servers = logs.init('https://portainer.example', 'token')
+
+        _, down_containers = servers['node-down']
+        self.assertEqual(down_containers, {})
+        _, up_containers = servers['node-up']
+        self.assertEqual(up_containers['bob']['Id'], 'def')
+
 
 class LogsContainerStatusIconTests(unittest.TestCase):
     def test_container_status_icon_reports_stopped_containers_as_red(self):
