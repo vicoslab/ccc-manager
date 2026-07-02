@@ -86,7 +86,11 @@ def init(base_url, token):
         name = endpoint['Name']
         containers = _snapshot_containers(endpoint)
         if containers is None:
-            containers = _fetch_endpoint_containers(base_url, token, id)
+            try:
+                containers = _fetch_endpoint_containers(base_url, token, id)
+            except (PortainerAPIError, requests.exceptions.RequestException) as e:
+                print(f'Warning: skipping endpoint {name!r} (id={id}): {e}', flush=True)
+                containers = []
         servers[name] = id, _containers_by_name(containers)
     return servers
 
