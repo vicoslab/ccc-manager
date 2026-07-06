@@ -70,16 +70,16 @@ if st.session_state.advanced_mode:
 for k,v in inputs.items():
     if isinstance(v, str):
         if person[k] != v:
-            user_df.loc[id, k] = v if v != '' else None
+            user_df.at[id, k] = v if v != '' else None
     elif isinstance(v, list):
         if person[k] != v:
-            user_df.loc[id, k] = v if v != [] else None
+            user_df.at[id, k] = v if v != [] else None
     elif isinstance(v, bool):
         if person[k] != v:
-            user_df.loc[id, k] = v if v != False else None
+            user_df.at[id, k] = v if v != False else None
     elif v == None:
         if person[k] == person[k] and person[k] != v:
-            user_df.loc[id, k] = None
+            user_df.at[id, k] = None
     else:
         raise ValueError(f'Unexpected type for key \'{k}\'', v)
 
