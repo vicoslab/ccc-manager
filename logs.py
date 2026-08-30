@@ -117,7 +117,7 @@ def parse_log(content):
         if len(line) > 8:
             # each line starts with 8 byte header (1 byte type (stdout=1, stderr=2), 3 bytes padding, 4 bytes length)
             type = int(line[0])
-            message = line[8:].decode('utf-8')
+            message = line[8:].decode('utf-8', errors='replace')
             lines.append((type, message))
     return lines
 

@@ -99,6 +99,20 @@ class LogsPortainerEndpointTests(unittest.TestCase):
         self.assertEqual(up_containers['bob']['Id'], 'def')
 
 
+class LogsParseLogTests(unittest.TestCase):
+    def test_parse_log_replaces_invalid_utf8_bytes_instead_of_raising(self):
+        header = (1).to_bytes(1, 'big') + b'\x00\x00\x00' + (1).to_bytes(4, 'big')
+        content = header + b'invalid \xe3 byte'
+
+        lines = logs.parse_log(content)
+
+        self.assertEqual(len(lines), 1)
+        type_, message = lines[0]
+        self.assertEqual(type_, 1)
+        self.assertIn('invalid', message)
+        self.assertIn('\ufffd', message)
+
+
 class LogsContainerStatusIconTests(unittest.TestCase):
     def test_container_status_icon_reports_stopped_containers_as_red(self):
         self.assertEqual(logs.container_status_icon({'State': 'exited'}, []), '🔴')
