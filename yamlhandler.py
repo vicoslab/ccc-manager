@@ -8,6 +8,7 @@ from ruamel.yaml.scalarstring import DoubleQuotedScalarString, SingleQuotedScala
 import pandas as pd
 from collections import Counter
 import re
+import io
 
 import container
 
@@ -308,3 +309,23 @@ def load_nodes(state, fd):
 
     data = yaml.load(fd.read())
     state['nodes'] = [*data['all']['children']['ccc-cluster']['hosts'].keys()]
+
+def has_pending_changes(state):
+    """Cheaply check whether the in-memory (edited) user/container data
+    differs from the plaintext that was last loaded from disk, without
+    invoking git. Used to decide whether it is safe to automatically
+    sync with the remote repository."""
+    if '_user_plaintext' not in state or '_container_plaintext' not in state:
+        return False
+
+    user_buf = io.StringIO()
+    save_users(state, user_buf)
+    if user_buf.getvalue() != state['_user_plaintext']:
+        return True
+
+    container_buf = io.StringIO()
+    save_containers(state, container_buf)
+    if container_buf.getvalue() != state['_container_plaintext']:
+        return True
+
+    return False

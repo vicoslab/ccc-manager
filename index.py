@@ -1,8 +1,15 @@
 import streamlit as st
 import config
-from yamlhandler import load_users, load_containers, load_nodes
+from yamlhandler import load_users, load_containers, load_nodes, has_pending_changes
 import subprocess
+import time
 import logs
+
+# How often (in seconds) we are willing to contact the remote to check for new commits.
+FETCH_INTERVAL_SECONDS = 60
+# How long we wait, with no local (uncommitted) changes, before automatically pulling
+# in remote changes without requiring the user to click the "Sync now" button.
+AUTO_SYNC_INTERVAL_SECONDS = 10 * 60
 
 def get_current_git_head():
     result = subprocess.run(
@@ -16,14 +23,43 @@ def get_current_git_head():
         return None
     return result.stdout.strip()
 
+def get_upstream_git_head():
+    result = subprocess.run(
+        ['git', 'rev-parse', '@{u}'],
+        cwd='/opt/ccc-inventory',
+        capture_output=True,
+        text=True
+    )
+    if result.returncode != 0:
+        return None
+    return result.stdout.strip()
+
+def fetch_remote():
+    result = subprocess.run(
+        ['git', 'fetch', '--prune'],
+        cwd='/opt/ccc-inventory',
+        capture_output=True,
+        text=True
+    )
+    if result.returncode != 0:
+        print(f'Warning: could not fetch remote changes: {result.stderr.strip()}', flush=True)
+
 def sync_inventory():
+    result = subprocess.run(
+        ['git', 'pull', '--ff-only'],
+        cwd='/opt/ccc-inventory',
+        capture_output=True,
+        text=True
+    )
+    if result.returncode != 0:
+        print(f'Warning: could not pull remote changes: {result.stderr.strip()}', flush=True)
     with open(config.users) as f:
         st.session_state['_user_plaintext'] = f.read()
     load_users(st.session_state)
     with open(config.containers) as f:
         st.session_state['_container_plaintext'] = f.read()
     load_containers(st.session_state)
-    st.session_state['_last_known_git_head'] = get_current_git_head()
+    st.session_state['_last_sync_time'] = time.time()
 
 #st.login()
 
@@ -66,12 +102,8 @@ if not hasattr(st.session_state, 'init_done'):
         with st.spinner('Initializing portainer integration'):
             st.session_state['portainer'] = logs.init(config.PORTAINER_URL, config.PORTAINER_TOKEN)
     with st.spinner("Fetching changes from git..."):
-        print('Initial git pull: ' + subprocess.run(
-            ['git', 'pull', '--ff-only'],
-            cwd='/opt/ccc-inventory',
-            capture_output=True,
-            text=True
-        ).stdout.strip(), flush=True)
+        fetch_remote()
+        st.session_state['_last_fetch_time'] = time.time()
     with st.spinner("Loading yaml...", show_time=True):
         with open(config.nodes) as f:
             load_nodes(st.session_state, f)
@@ -88,12 +120,28 @@ with st.sidebar.container(key='global-options'):
     st.session_state.advanced_mode = st.toggle('Show extra options', st.session_state.advanced_mode, key='advanced-toggle')
     st.session_state.view_deleted = st.toggle('Show disabled users', st.session_state.view_deleted, key='deleted-toggle')
 
+now = time.time()
+if now - st.session_state.get('_last_fetch_time', 0) > FETCH_INTERVAL_SECONDS:
+    fetch_remote()
+    st.session_state['_last_fetch_time'] = now
+
 current_head = get_current_git_head()
-if current_head and current_head != st.session_state.get('_last_known_git_head'):
+upstream_head = get_upstream_git_head()
+remote_diverged = bool(upstream_head) and upstream_head != current_head
+
+if remote_diverged:
+    pending_changes = has_pending_changes(st.session_state)
+
+    # Automatically pull in remote changes once enough time has passed since the
+    # last sync, but only if the user has no unsaved local edits that could conflict.
+    if not pending_changes and now - st.session_state.get('_last_sync_time', 0) > AUTO_SYNC_INTERVAL_SECONDS:
+        sync_inventory()
+        st.rerun()
+
     with st.sidebar:
         st.warning(
             'The inventory was updated by another user. '
-            'Syncing will discard any unsaved changes.',
+            + ('Syncing will discard any unsaved changes.' if pending_changes else 'Click below to fetch the latest changes.'),
             icon='⚠️',
         )
         if st.button('🔄 Sync now', key='sync-notification', use_container_width=True):
