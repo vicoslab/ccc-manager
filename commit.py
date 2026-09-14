@@ -58,7 +58,6 @@ container_filename = config.containers[len(config.INVENTORY_DIR)+1:]
 container_diff = process_diff(st.session_state['_container_plaintext'], save_containers, container_filename)
 
 confirm_discard = confirmation('Confirm discard')
-confirm_clean_clone = confirmation('Confirm clean inventory reset')
 
 def discard():
     with open(config.users) as f:
@@ -107,11 +106,18 @@ def commit():
         out = st.session_state['_commit_error_out']
         st.write(':red[Could not save changes because the inventory repository changed in a conflicting way.]')
         st.write('The application tried to update the local inventory before applying your changes. If the conflict cannot be resolved automatically, reset the local inventory to a clean copy from the remote and re-enter your changes.')
-        if st.button('Clean git clone / discard local inventory changes'):
-            confirm_clean_clone(
-                'This will discard all local inventory changes and reset the inventory repository to the remote branch. Continue?',
-                clean_inventory,
-            )
+        if st.session_state.get('_confirm_clean_inventory', False):
+            st.warning('This will discard all local inventory changes and reset the inventory repository to the remote branch.')
+            _, left, right = st.columns([0.7, 0.15, 0.15])
+            if left.button('Cancel clean reset'):
+                st.session_state['_confirm_clean_inventory'] = False
+                st.rerun()
+            if right.button('Confirm clean reset', type='primary'):
+                st.session_state['_confirm_clean_inventory'] = False
+                clean_inventory()
+        elif st.button('Clean git clone / discard local inventory changes'):
+            st.session_state['_confirm_clean_inventory'] = True
+            st.rerun()
         st.divider()
         st.html(f'''
             {conv.produce_headers()}
